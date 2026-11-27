@@ -284,6 +284,8 @@ button,input,select{font-family:inherit}button.go{background:#19503e;color:white
 .lbt small{display:block;opacity:.7;font-size:.82em}.lbt tr.me{background:#fff1b8}.lbsc{max-height:46dvh;overflow:auto}
 .lbmsg{font-weight:700}.lbhelp{font-size:.8em;opacity:.75}
 .lbopen{display:block;width:100%;margin:0 0 14px}
+.go.lock{opacity:.55;filter:grayscale(.6)}.holew{margin:6px 0}
+.rpl{display:flex;flex-direction:column;gap:6px;margin:8px 0;max-height:46dvh;overflow:auto}.rpr{display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center;padding:6px 8px;border:2px solid #22201c;border-radius:8px;background:#fffdf5}.rpr small{grid-column:2;opacity:.75}.rpp{grid-row:1/3;font:700 12px/1 G11B,monospace;padding:6px 5px;border:2px solid #22201c;border-radius:5px;background:#e9e3d0}.rpp.p-GK{background:#ffe08a}.rpp.p-DF{background:#9fd3ff}.rpp.p-MF{background:#a9e7a3}.rpp.p-FW{background:#ffb0a8}
 .nmrow{display:flex;gap:10px}.nmrow>div{flex:1;min-width:0}.nmrow input{width:100%;box-sizing:border-box}.nmrow label small{font-weight:400;opacity:.65;font-size:.8em}.nmerr{color:#c0392b;font-weight:700;margin:4px 0 0}
 #lbst{display:block;font-size:.78em;opacity:.8}
 </style>
@@ -566,7 +568,7 @@ function ageSquad(g){const c=C(g),T=c.tier,log=[],tb=(g.fac.tr-1)*TRB;
     else if(p.pot&&p.ovr<p.pot&&a<=26)d=Math.max(2,Math.min(Math.round(6*trm)+ri(0,3),Math.round((p.pot-p.ovr)*.22*trm+gauss())));
     else{const b=a<=21?3:a<=24?2:a<=27?1:.5;d=Math.max(0,Math.round(b*trm*(p.yth?1.8:1)+gauss()*.7))}
     if(d>0)d=Math.max(0,Math.min(d,p.cap-p.ovr));p.ovr=cl(p.ovr+d,5,99);p.dv=p.ovr-o0}
-  c.sq=c.sq.filter(p=>{const r=p.age>=38||(p.age>=34&&R()<.4);if(r)log.push(`${p.n} 은퇴`);return!r});
+  const ret=[];c.sq=c.sq.filter(p=>{const r=p.age>=38||(p.age>=34&&R()<.4);if(r){log.push(`${p.n} 은퇴`);ret.push({n:p.n,pos:p.pos,age:p.age,ovr:p.ovr,star:p.star?1:0,mir:p.mir?1:0,yth:p.yth?1:0})}return!r});g.retLast=ret;
   fillYQ(g);for(let k=0;k<yMax(g);k++){if(!(R()<(k?yProb(g)*.5:yProb(g))))break;const p=g.yq.shift();p.age=Math.max(17,p.age+1);p.ovr=cl(p.ovr+ri(0,2),5,99);p.acq={s:g.season,c:0,y:1};addP(g,p);log.push(`유스 ${p.n} (${PN[p.pos]}, ${p.ovr}${p.pot?`, 잠재력 ${p.pot}`:''}) 1군 승격`)}
   for(const p of g.yq){p.age++;p.ovr=cl(p.ovr+ri(0,2),5,99)}fillYQ(g);
   g.ybon=Math.round((g.ybon||0)*.5);c.mod=Math.round((c.mod||0)*.5);recalc(g);return log}
@@ -919,6 +921,15 @@ function lbPaint(){const o=$('lbm');if(!o)return;const s=g&&g.hist.length?lbStat
   const mine=s?`<div class="lbmy"><span>내 기록${ended?'':' (진행 중)'}</span><b>EPL🏆 ${s.epl}</b><b>챔스🏆 ${s.ucl}</b><b>순위점수 ${s.rpt.toLocaleString()}</b>${LBme?`<em>${LBN[LBT]} 기준 ${LBme}위</em>`:''}</div>`:'';
   const form=!lbOn()||!g?'':ended&&g.lbSent?`<p class="note">‘${hx(g.lbSent)}’ 이름으로 등록됨</p>`:ended?`<div class="lbf"><span class="note">아직 등록되지 않았습니다.</span><button class="go" data-a="lbsend">다시 시도</button></div>`:`<p class="note">‘${hx(g.owner)}’ 이름으로, 게임이 끝나면 자동 등록됩니다.</p>`;
   o.innerHTML=`<div class="rbb lbb"><h3 id="lbmt">🌍 온라인 랭킹</h3><div class="lbtabs">${Object.keys(LBN).map(k=>`<button data-a="lbt" data-i="${k}" aria-pressed="${k===LBT}">${LBN[k]}</button>`).join('')}</div>${mine}${form}${LBmsg?`<p class="note lbmsg">${hx(LBmsg)}</p>`:''}${rows}<p class="note lbhelp">순위 점수: 매 시즌 전체 ${LB_OFF.all}개 구단 중 우리 순위가 높을수록 많이 쌓입니다.</p><div class="acts"><button data-a="lbx">닫기</button></div></div>`}
+function holes(g){const c=C(g),N=needOf(c),o=[];for(const q of POS){const n=c.sq.filter(x=>x.pos===q&&!x.inj).length;if(n<N[q])o.push([q,N[q]-n])}return o}
+function holeModal(){$('hlm')?.remove();const H=holes(g),c=C(g),o=document.createElement('div');o.className='rbm';o.id='hlm';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-labelledby','hlmt');
+  const fm=(c.fm||'4-4-2');o.innerHTML=`<div class="rbb"><h3 id="hlmt">🔒 시즌을 시작할 수 없습니다</h3><p>현재 포메이션(<b>${fm}</b>)을 채울 선수가 모자랍니다.</p><ul>${H.map(([q,n])=>`<li><b>${PN[q]}</b> ${n}명 부족</li>`).join('')}</ul><p class="note">선수 뽑기로 채우거나, 급한 대로 동네에서 임시 선수를 데려올 수 있습니다. 임시 선수는 실력이 낮지만 이적료 없이 연봉만 받습니다.</p>
+  <div class="acts"><button class="go" data-a="hole-draw" data-i="${H[0][0]}">${PN[H[0][0]]} 뽑으러 가기</button><button class="ghost" data-a="hole-temp">임시 선수 데려오기</button><button class="ghost" data-a="hole-x">닫기</button></div></div>`;
+  document.body.appendChild(o);o.querySelector('[data-a=hole-draw]').focus()}
+function holeTemp(){const c=C(g),base=Math.round(lgAvg(g,c.tier))-8;for(const [q,n] of holes(g))for(let k=0;k<n;k++){const p=mkP(q,cl(base+ri(-2,2),5,99),ri(27,33));p.from='임시 계약 (동네 선수)';p.acq={s:g.season,c:0};addP(g,p)}recalc(g);setPred(g)}
+function retPopup(){if(!g||!g.retLast||!g.retLast.length||g.retShown===g.season)return;g.retShown=g.season;const L=g.retLast,o=document.createElement('div');o.className='rbm';o.id='rpm';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-labelledby','rpmt');
+  o.innerHTML=`<div class="rbb"><h3 id="rpmt">👋 은퇴 소식</h3><p>이번 시즌을 끝으로 <b>${L.length}명</b>이 유니폼을 벗습니다.</p><div class="rpl">${L.map(r=>`<div class="rpr"><span class="rpp p-${r.pos}">${r.pos}</span><b>${hx(r.n)}</b><small>${PN[r.pos]} · ${r.age}세 · OVR ${r.ovr}${r.yth?' · 유스 출신':''}</small></div>`).join('')}</div>${(()=>{const c=C(g),N=needOf(c),miss=POS.filter(q=>c.sq.filter(x=>x.pos===q).length<N[q]);return miss.length?`<p class="out">${miss.map(q=>PN[q]).join(', ')} 자리가 비었습니다. 다음 시즌 시작 전에 채워야 합니다.</p>`:''})()}<div class="acts"><button class="go" data-a="rp-x">확인</button></div></div>`;
+  document.body.appendChild(o);o.querySelector('[data-a=rp-x]').focus()}
 function retModal(){const o=document.createElement('div');o.className='rbm';o.id='rtm';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-labelledby','rtmt');const n=g.hist.length,s=lbStats(g);
   o.innerHTML=n?`<div class="rbb"><h3 id="rtmt">🏁 은퇴하기</h3><p><b>${hx(C(g).n)}</b>의 구단주 자리에서 물러납니다. 지금까지 <b>${n}시즌</b>의 기록으로 커리어가 마무리됩니다.</p><ul><li>진행 중인 시즌은 기록에 들어가지 않습니다.</li><li>EPL🏆 ${s.epl} · 챔스🏆 ${s.ucl} · 순위점수 ${s.rpt.toLocaleString()}</li>${lbOn()?`<li>‘${hx(g.owner)}’ 이름으로 온라인 랭킹에 자동 등록됩니다.</li>`:''}<li>은퇴하면 되돌릴 수 없습니다.</li></ul><div class="acts"><button class="go" data-a="retire-ok">은퇴하기</button><button class="ghost" data-a="retire-no">계속 운영하기</button></div></div>`
    :`<div class="rbb"><h3 id="rtmt">🏁 은퇴하기</h3><p>첫 시즌을 마친 뒤에 은퇴할 수 있습니다.</p><div class="acts"><button class="go" data-a="retire-no">확인</button></div></div>`;
@@ -926,6 +937,10 @@ function retModal(){const o=document.createElement('div');o.className='rbm';o.id
 function retireNow(){if(!g||g.phase==='end'||!g.hist.length)return;try{clearTimeout(autoT)}catch(e){}try{if(busy){clearInterval(busy);clearTimeout(busy);busy=null}}catch(e){}window.__skip=null;document.querySelectorAll('.fxo').forEach(x=>x.remove());
   g.ff=false;g.ffRes=false;g.phase='end';g.endR=`${g.hist.length}시즌 후 은퇴`;g.retired=1;TAB='game';render();window.scrollTo(0,0)}
 document.addEventListener('click',ev=>{const b=ev.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;
+  if(a==='hole-x'){ev.stopImmediatePropagation();$('hlm')?.remove();return}
+  if(a==='hole-draw'){ev.stopImmediatePropagation();$('hlm')?.remove();g.dpos=b.dataset.i;render();showTab('squad');setTimeout(()=>{const d=$('dr');if(d)d.scrollIntoView({block:'start'})},50);return}
+  if(a==='hole-temp'){ev.stopImmediatePropagation();$('hlm')?.remove();holeTemp();render();return}
+  if(a==='rp-x'){ev.stopImmediatePropagation();$('rpm')?.remove();return}
   if(a==='retire'){ev.stopImmediatePropagation();if(g&&g.phase!=='end')retModal();return}
   if(a==='retire-no'){ev.stopImmediatePropagation();$('rtm')?.remove();return}
   if(a==='retire-ok'){ev.stopImmediatePropagation();$('rtm')?.remove();retireNow();return}
@@ -1170,7 +1185,7 @@ function card(){const el=$('cd');let o='';
     <div class="acts"><button class="go${ovw?' warnb':''}" data-a="start">${ovw?'진행 중인 저장을 덮어씁니다. 한 번 더 누르면 새로 시작':'창단하기'}</button></div>${ovw?'<p class="note">기존 저장은 백업 칸에 한 번 보관됩니다.</p>':''}`}
   else if(g.phase==='pre'){const c=C(g),ls=g.hist.at(-1);o=`<div class="kick">${yr(g.season)} 시즌 · 프리시즌</div><h2>${c.n}</h2>
     <p class="note" style="margin:0 0 4px">${TN[c.tier]} · 예상 순위 <b>${g.pred}위</b> · 전력 ${c.str} (리그 평균 ${lgAvg(g,c.tier).toFixed(1)})${g.euroNext?` · <b>${CK(g.euroNext).n} 출전</b>`:''}</p>
-    ${banned(g)?'<p class="out"><b>경영 참여 정지 중</b> — 협회 징계로 이번 프리시즌에는 뽑기·방출·시설·감독·티켓을 바꿀 수 없습니다.</p>':''}<div class="acts top"><button class="go" data-a="kick">시즌 시작 ▶</button><button class="ghost" data-a="ptab" data-i="squad">선수 뽑기 · 감독</button><button class="ghost" data-a="ptab" data-i="club">시설 · 티켓</button></div>
+    ${banned(g)?'<p class="out"><b>경영 참여 정지 중</b> — 협회 징계로 이번 프리시즌에는 뽑기·방출·시설·감독·티켓을 바꿀 수 없습니다.</p>':''}${(()=>{const H=holes(g);return H.length?`<p class="out holew"><b>⚠ 포지션 공백</b> — ${H.map(([q,n])=>`${PN[q]} ${n}명`).join(' · ')} 부족. 채우기 전에는 시즌을 시작할 수 없습니다.</p>`:''})()}<div class="acts top"><button class="go${holes(g).length?' lock':''}" data-a="kick">${holes(g).length?'🔒 ':''}시즌 시작 ▶</button><button class="ghost" data-a="ptab" data-i="squad">선수 뽑기 · 감독</button><button class="ghost" data-a="ptab" data-i="club">시설 · 티켓</button></div>
     <div class="ex"><div><b class="${g.cash<0?'dn':''}">${fm(g.cash)}</b><span>자금</span></div><div><b>${fm(wageBill(g))}</b><span>시즌 임금</span></div><div><b>${ls?fm(ls.net):'-'}</b><span>지난 시즌 운영손익</span></div></div>
     <ul class="chk"><li>선수단 <b>${c.sq.length}/${SQMAX}</b> · 이번 프리시즌 뽑기 <b>${g.dn||0}회</b>${g.draw?' · <b class="evn">뽑은 선수 대기 중</b>':''}</li><li>감독 <b>${g.m.name}</b> (${g.m.fm||'4-4-2'}) · 티켓 <b>${fm(g.price)}</b> (리그 평균 ${fm(REFP[c.tier])})</li><li>시설 ${FAC.map(f=>`${f.n} ${g.fac[f.k]}`).join(' · ')}</li></ul>
     <p class="note">시즌을 시작하면 뽑기·시설·감독·티켓은 다음 프리시즌까지 바꿀 수 없습니다.</p>`}
@@ -1397,7 +1412,7 @@ function newsHTML(nw){if(!nw)return'';const hl=id=>id===g.club?' class="me"':'',
   return`<div class="nws"><p class="poty${pt.mine?' me':''}"><small>${yr(nw.s)} 올해의 선수</small><b>${pt.n}</b> ${PN[pt.pos]} · ${tm(pt.id).n}${pt.st?`<small class="pst">${stTxt(pt.st,pt.pos)}</small>`:''}</p><h4>유럽대회 우승</h4><ul class="nl">${cup}</ul><h4>리그 우승</h4><ul class="nl">${ch}</ul><h4>유럽 베스트 11 (4-3-3)</h4><div class="xi">${xi}</div>${nw.gb&&nw.gb.length?`<div class="rk2"><div><h4>득점 순위</h4><ol class="rkl">${nw.gb.map(p=>`<li${hl(p.id)}><span>${p.n} <small>${tm(p.id).n}</small></span><b>${p.st.g}골</b></li>`).join('')}</ol></div><div><h4>도움 순위</h4><ol class="rkl">${nw.as.map(p=>`<li${hl(p.id)}><span>${p.n} <small>${tm(p.id).n}</small></span><b>${p.st.a}도움</b></li>`).join('')}</ol></div></div>`:''}${nw.vet&&nw.vet.length?`<h4>베테랑 하부리그행</h4><ul class="nl tr vt">${nw.vet.map(t=>`<li><b>${t.age}세</b><div class="tri"><span class="tn">${t.n} <small>${PN[t.pos]}</small></span><small>${tm(t.from).n} → ${tm(t.to).n}${tm(t.to).tier?` (${TN[tm(t.to).tier]})`:''}</small></div></li>`).join('')}</ul>`:''}${nw.trs&&nw.trs.length?`<h4>여름 이적시장 주요 이적</h4><ul class="nl tr">${nw.trs.map(t=>`<li><b>${fm(t.fee)}</b><div class="tri"><span class="tn">${t.n} <small>${PN[t.pos]}</small></span><small>${tm(t.from).n} → ${tm(t.to).n}</small></div></li>`).join('')}</ul>`:''}</div>`}
 function newsPanel(){const el=$('nw');if(!el)return;if(!g||!g.news||!g.news.length){el.innerHTML='<p class="note">시즌이 끝나면 리그 우승팀, 유럽대회 우승팀, 유럽 베스트 11 뉴스가 쌓입니다.</p>';return}
   const i=cl(g.nwi??g.news.length-1,0,g.news.length-1);el.innerHTML=`<div class="nvb"><button class="mini" data-a="nw" data-i="-1" ${i<=0?'disabled':''}>◀ 이전</button><b>${yr(g.news[i].s)} 시즌</b><button class="mini" data-a="nw" data-i="1" ${i>=g.news.length-1?'disabled':''}>다음 ▶</button></div>${newsHTML(g.news[i])}`}
-function render(){{const rb=$('rebb');if(rb)rb.hidden=!g||g.phase==='end';const rt=$('retb');if(rt)rt.hidden=!g||g.phase==='end'}navTabs();status();card();mini();drPanel();squad();scene();opsPanel();side();finPanel();table();chart();hist();newsPanel();dexPanel();saveGame()}
+function render(){setTimeout(()=>{if(g&&(g.phase==='result'||g.phase==='post'||g.phase==='end')&&!$('rpm')&&!document.querySelector('.fxo'))retPopup()},400);{const rb=$('rebb');if(rb)rb.hidden=!g||g.phase==='end';const rt=$('retb');if(rt)rt.hidden=!g||g.phase==='end'}navTabs();status();card();mini();drPanel();squad();scene();opsPanel();side();finPanel();table();chart();hist();newsPanel();dexPanel();saveGame()}
 let autoT=null;
 function startRun(){if(busy)return;g.ff=true;g.ffRes=false;const tick=()=>{const S=g.S;busy=null;
     if(!g.ff||g.phase!=='season'||S.r>=S.fx.length){g.ff=false;renderFlip();return}
@@ -1436,7 +1451,7 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('[data-a]');if(
   else if(a==='up'){if(!upgrade(g,i))return;fix(g);recalc(g);setPred(g);g.lastUp={k:i,t:Date.now()};setTimeout(scene,1600)}
   else if(a==='hire'){if(!PRE()||!hire(g,+i))return}
   else if(a==='px'){if(!PRE())return;g.price=clampPrice(g,g.price+(+i));scene();status();card();side();saveGame();return}
-  else if(a==='kick'){kickoff(g);}
+  else if(a==='kick'){if(holes(g).length){holeModal();return}kickoff(g);}
   else if(a==='skip'){if(window.__skip){const f=window.__skip;window.__skip=null;clearInterval(busy);clearTimeout(busy);busy=null;f()}return}
   else if(a==='stop'){g.ff=false;g.ffRes=false;clearTimeout(busy);busy=null;renderFlip();return}
   else if(a==='step'){if(busy)return;const S=g.S;if((S.ei<g.evs.length&&S.r===S.evR[S.ei])||S.r>=S.fx.length){step(g)}else{S.pr=ranks();step(g);playMatch(()=>{window.__skip=null;renderFlip()});return}}
