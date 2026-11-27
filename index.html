@@ -284,7 +284,8 @@ button,input,select{font-family:inherit}button.go{background:#19503e;color:white
 .lbt small{display:block;opacity:.7;font-size:.82em}.lbt tr.me{background:#fff1b8}.lbsc{max-height:46dvh;overflow:auto}
 .lbmsg{font-weight:700}.lbhelp{font-size:.8em;opacity:.75}
 .lbopen{display:block;width:100%;margin:0 0 14px}
-.go.lock{opacity:.55;filter:grayscale(.6)}.holew{margin:6px 0}
+.go.lock{opacity:.55;filter:grayscale(.6)}
+.sgp{border:3px solid #22201c;border-radius:10px;padding:10px;margin:10px 0;background:#fffaf0}.sgp h3{margin:0 0 4px;font-size:18px}.sgp p{margin:0}.sgl{display:grid;grid-template-columns:1fr;gap:5px;max-height:300px;overflow:auto;margin:8px 0}.sgr{display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center;text-align:left;padding:3px 8px;min-height:0;font-size:14px;border:2px solid #22201c;border-radius:8px;background:#fff}.sgr small{grid-column:2;opacity:.75;font-size:12px}.sgr .rpp{padding:4px 4px;font-size:11px}.sgr.on{background:#ffe08a}.holew{margin:6px 0}
 .rpl{display:flex;flex-direction:column;gap:6px;margin:8px 0;max-height:46dvh;overflow:auto}.rpr{display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center;padding:6px 8px;border:2px solid #22201c;border-radius:8px;background:#fffdf5}.rpr small{grid-column:2;opacity:.75}.rpp{grid-row:1/3;font:700 12px/1 G11B,monospace;padding:6px 5px;border:2px solid #22201c;border-radius:5px;background:#e9e3d0}.rpp.p-GK{background:#ffe08a}.rpp.p-DF{background:#9fd3ff}.rpp.p-MF{background:#a9e7a3}.rpp.p-FW{background:#ffb0a8}
 .nmrow{display:flex;gap:10px}.nmrow>div{flex:1;min-width:0}.nmrow input{width:100%;box-sizing:border-box}.nmrow label small{font-weight:400;opacity:.65;font-size:.8em}.nmerr{color:#c0392b;font-weight:700;margin:4px 0 0}
 #lbst{display:block;font-size:.78em;opacity:.8}
@@ -523,7 +524,7 @@ function sqOvr(c){const L=lineup(c);let s=0,w=0;for(const p of L){const k=p.pos=
 function recalc(g){const c=C(g);if(g.m&&!g.m.fm)g.m.fm='4-4-2';c.fm=g.m?g.m.fm:'4-4-2';c.str=cl(Math.round(sqOvr(c)+(c.mod||0)),12,99)}
 function genSq(c){c.sq=[];for(const p of POS){for(let i=0;i<NEED[p];i++)c.sq.push(mkP(p,c.str+gauss()*2,ri(19,33)));for(let i=0;i<BENCH[p];i++)c.sq.push(mkP(p,c.str-4+gauss()*2,ri(18,34)))}
   const d=c.str-sqOvr(c);c.sq.forEach(p=>p.ovr=cl(Math.round(p.ovr+d),5,99));c.mod=c.str-Math.round(sqOvr(c))}
-function addP(g,p){const c=C(g);if(!p.acq)p.acq={s:g.season,c:0};if(c.sq.length>=SQMAX){const L=new Set(lineup(c).map(x=>x.id)),w=c.sq.filter(x=>!L.has(x.id)).sort((a,b)=>a.ovr-b.ovr)[0];if(w)c.sq.splice(c.sq.indexOf(w),1)}c.sq.push(p);return p}
+function addP(g,p){const c=C(g);if(!p.acq)p.acq={s:g.season,c:0};if(g.evCtx&&c.sq.length>=SQMAX){(g.pendSign=g.pendSign||[]).push(p);return p}if(c.sq.length>=SQMAX){const L=new Set(lineup(c).map(x=>x.id)),w=c.sq.filter(x=>!L.has(x.id)).sort((a,b)=>a.ovr-b.ovr)[0];if(w)c.sq.splice(c.sq.indexOf(w),1)}c.sq.push(p);return p}
 const best=c=>lineup(c).sort((a,b)=>b.ovr-a.ovr)[0];
 const posAvg=(c,pos)=>{const L=lineup(c).filter(p=>p.pos===pos);return L.length<needOf(c)[pos]?0:Math.round(L.reduce((a,p)=>a+p.ovr,0)/L.length)};
 const worstStart=(c,pos)=>{const L=lineup(c).filter(p=>p.pos===pos);return L.length<needOf(c)[pos]?0:Math.min(...L.map(p=>p.ovr))};
@@ -679,17 +680,17 @@ const EV=[
  ['외부 재활 전문가를 데려온다',g=>{pay(g,15);if(lucky(g,.65)){const L=shuffle(lineup(C(g))).slice(0,1);L.forEach(p=>p.inj=true);return`조기 진화 성공. ${L.map(p=>p.n).join(', ')}만 시즌 아웃. 자금 -${M(g,15)}.`}const L=shuffle(lineup(C(g))).slice(0,6);L.forEach(p=>p.inj=true);return`재활 실패. 주전 6명 시즌 아웃: ${L.map(p=>p.n).join(', ')}. 자금 -${M(g,15)}.`},15],
  ['훈련 철학을 고수한다',g=>{if(lucky(g,.4)){g.ybon+=5;return'다행히 경미한 부상이었다. 강훈련 효과로 유스 +5.'}const L=shuffle(lineup(C(g))).slice(0,6);L.forEach(p=>p.inj=true);g.ybon+=5;return`주전 6명 시즌 아웃: ${L.map(p=>p.n).join(', ')}. 어린 선수들이 기회를 잡는다. 유스 +5.`}]]},
 {id:'crash',t:'세계 대공황',x:'주식시장이 폭락해 구단 자산이 통째로 흔들린다. 다들 팔자고 하는데 회장님 눈빛이 이상하다.',w:g=>g.own==='inv'?1:0,c:[
- ['헤지 전문가에게 자산을 맡긴다',g=>{pay(g,15);if(lucky(g,.65))return`방어 성공. 수수료 -${M(g,15)}.`;const v=Math.round(Math.max(0,g.cash)*.3);g.cash-=v;return`헤지 실패. 자산 -${fm(v)} (30%), 수수료 -${M(g,15)}.`},15],
- ['"남들이 두려워할 때 사라" 전액 저점 매수',g=>{if(lucky(g,.4)){earn(g,25);return`반등 성공! 수익 +${M(g,25)}.`}const v=Math.round(Math.max(0,g.cash)*.3);g.cash-=v;return`바닥 밑에 지하실이 있었다. 자산 -${fm(v)} (30%).`}]]},
+ ['헤지 전문가에게 자산을 맡긴다',g=>{pay(g,15);if(lucky(g,.65))return`방어 성공. 수수료 -${M(g,15)}.`;const v=Math.round(Math.max(0,g.cash)*.3);g.cash-=v;return`헤지 실패. 자산 -${fm(v)} (30%), 수수료 -${M(g,15)}.`},15,g=>15+Math.max(0,g.cash-15*U(g))*.3/U(g)],
+ ['"남들이 두려워할 때 사라" 전액 저점 매수',g=>{if(lucky(g,.4)){earn(g,25);return`반등 성공! 수익 +${M(g,25)}.`}const v=Math.round(Math.max(0,g.cash)*.3);g.cash-=v;return`바닥 밑에 지하실이 있었다. 자산 -${fm(v)} (30%).`},0,g=>Math.max(0,g.cash)*.3/U(g)]]},
 {id:'kid',t:'유스 괴물 등장',x:'U-18에서 말도 안 되는 재능이 나타났다. 빅클럽 스카우트들이 벌써 경기장에 왔다.',w:g=>.3+ythOf(g)/120,c:[
  ['즉시 1군에 올린다',LK(.6,g=>{const p=addP(g,mkP(pick(['MF','FW']),TM[C(g).tier]+ri(4,8)+Math.round(ythOf(g)/20),17));p.yth=1;p.pot=Math.min(92,p.ovr+ri(15,30));g.mor+=4;return`${p.n} (${PN[p.pos]}, OVR ${p.ovr}, 잠재력 ${p.pot}) 1군 데뷔. 데뷔전 멀티골! 사기 +4.`},g=>{const p=addP(g,mkP(pick(['MF','FW']),TM[C(g).tier]+ri(1,4)+Math.round(ythOf(g)/20),17));p.yth=1;p.pot=Math.min(85,p.ovr+ri(4,10));g.mor-=2;return`${p.n} (OVR ${p.ovr}, 잠재력 ${p.pot}) 데뷔전에서 긴장해 실수 연발. 성장세가 꺾였다. 사기 -2.`})],
  ['최고가에 판다',LK(.6,g=>{const v=25+Math.round((g.m.neg-50)/3);earn(g,v);return`빅클럽끼리 경쟁이 붙었다. 구단 역대 최고 이적료 +${M(g,v)}.`},g=>{const v=Math.round((25+(g.m.neg-50)/3)/2);earn(g,v);g.pat-=4;return`에이전트가 판을 뒤집었다. 반값에 넘겼다. 자금 +${M(g,v)}, 팬 만족도 -4.`})]]},
 {id:'inj',t:'에이스 시즌아웃',x:'팀 득점 1위가 십자인대 파열. 남은 시즌은 끝났다.',w:g=>2.3*(1-.07*(g.fac.md-1)),c:[
  ['대체자를 급히 영입한다',LK(.55,g=>{const b=best(C(g));b.inj=true;pay(g,15);const p=addP(g,mkR(g,b.pos,b.ovr-2+gauss()*2,ri(24,31)));return`${b.n} 시즌 아웃. 대체자 ${p.n} (OVR ${p.ovr})가 공백을 완벽히 메운다. 자금 -${M(g,15)}.`},g=>{const b=best(C(g));b.inj=true;pay(g,15);const p=addP(g,mkR(g,b.pos,b.ovr-9+gauss()*2,ri(28,33)));return`${b.n} 시즌 아웃. 급하게 데려온 ${p.n} (OVR ${p.ovr})은 기대 이하. 자금 -${M(g,15)}.`}),15],
  ['유스로 메운다',LK(.5,g=>{const b=best(C(g));b.inj=true;g.ybon+=6;g.mor+=3;return`${b.n} 시즌 아웃. 유스가 깜짝 활약했다. 유스 +6, 사기 +3.`},g=>{const b=best(C(g));b.inj=true;g.ybon+=3;g.mor-=6;return`${b.n} 시즌 아웃. 공백이 너무 크다. 유스 +3, 사기 -6.`})]]},
-{id:'out',t:'에이스의 이적 요청',x:'주전 공격수가 "더 큰 무대로 가고 싶다"며 훈련에 불참했다.',w:()=>1.5,c:[
- ['판다',LK(.6,g=>{const c=C(g),b=best(c),v=Math.round((sellVal(g,b)+10*U(g)*(1+(g.m.neg-50)/100))*1.2);c.sq.splice(c.sq.indexOf(b),1);g.cash+=v;return`경쟁이 붙어 몸값이 올랐다. ${b.n} (OVR ${b.ovr}) 이적, 자금 +${fm(v)}.`},g=>{const c=C(g),b=best(c),v=Math.round((sellVal(g,b)+10*U(g)*(1+(g.m.neg-50)/100))*.7);c.sq.splice(c.sq.indexOf(b),1);g.cash+=v;g.pat-=3;return`버티던 선수 탓에 협상력을 잃었다. ${b.n} 헐값 이적, 자금 +${fm(v)}, 팬 만족도 -3.`})],
- ['잔류를 설득한다',g=>{if(chk(g,'mot',50)){g.mor+=6;return'면담 끝에 잔류. 사기 +6.'}g.mor-=18;C(g).str-=2;return'설득 실패. 태업이 시작됐다. 사기 -18, 전력 -2.'}]]},
+{id:'out',t:'에이스의 이적 요청',x:g=>{const b=evTarget(g);return b?`팀의 에이스 ${PN[b.pos]} <b>${b.n}</b> (OVR ${b.ovr}, ${b.age}세)가 "더 큰 무대로 가고 싶다"며 훈련에 불참했다.`:'에이스가 "더 큰 무대로 가고 싶다"며 훈련에 불참했다.'},w:()=>1.5,c:[
+ [Object.assign(g=>{const b=evTarget(g);return b?`${b.n} (${PN[b.pos]} · OVR ${b.ovr}) 판다`:'판다'},{lbl:'판다 (대상 선수 이름·포지션·OVR 표시)'}),LK(.6,g=>{const c=C(g),b=evTarget(g),v=Math.round((sellVal(g,b)+10*U(g)*(1+(g.m.neg-50)/100))*1.2);c.sq.splice(c.sq.indexOf(b),1);g.cash+=v;return`경쟁이 붙어 몸값이 올랐다. ${b.n} (${PN[b.pos]}, OVR ${b.ovr}) 이적, 자금 +${fm(v)}.`},g=>{const c=C(g),b=evTarget(g),v=Math.round((sellVal(g,b)+10*U(g)*(1+(g.m.neg-50)/100))*.7);c.sq.splice(c.sq.indexOf(b),1);g.cash+=v;g.pat-=3;return`버티던 선수 탓에 협상력을 잃었다. ${b.n} (${PN[b.pos]}, OVR ${b.ovr}) 헐값 이적, 자금 +${fm(v)}, 팬 만족도 -3.`})],
+ [Object.assign(g=>{const b=evTarget(g);return b?`${b.n} 잔류를 설득한다`:'잔류를 설득한다'},{lbl:'잔류를 설득한다'}),g=>{if(chk(g,'mot',50)){g.mor+=6;return'면담 끝에 잔류. 사기 +6.'}g.mor-=18;C(g).str-=2;return'설득 실패. 태업이 시작됐다. 사기 -18, 전력 -2.'}]]},
 {id:'vet',t:'무적 베테랑',x:'상위 리그에서 방출된 베테랑이 테스트를 자청했다.',w:()=>1.2,c:[
  ['입단 테스트를 본다',LK(.55,g=>{const p=addP(g,mkR(g,pick(POS.slice(1)),TM[C(g).tier]+ri(4,10),ri(33,35)));g.mor+=2;return`클래스는 영원하다. ${p.n} (${PN[p.pos]}, OVR ${p.ovr}, ${p.age}세) 합류. 사기 +2.`},g=>{g.mor-=2;return'테스트 도중 햄스트링이 올라왔다. 계약 무산. 사기 -2.'})],
  ['넘긴다',LK(.6,g=>{g.ybon+=3;return'젊은 선수에게 기회를 준다. 유스 +3.'},g=>{g.mor-=4;return'라이벌 팀이 데려가더니 우리 상대로 결승골을 넣었다. 사기 -4.'})]]},
@@ -703,7 +704,7 @@ const EV=[
  ['지분을 판다',LK(.5,g=>{earn(g,80);g.pat-=6;return`투자자는 조용히 돈만 댔다. 자금 +${M(g,80)}, 팬 만족도 -6.`},g=>{earn(g,60);g.pat-=15;return`조건이 바뀌었다. 구단명 변경 압박에 팬들이 들끓는다. 자금 +${M(g,60)}, 팬 만족도 -15.`})],
  ['독립 경영을 지킨다',LK(.6,g=>{g.pat+=12;return'"이 구단은 팔지 않는다." 팬들이 열광했다. 팬 만족도 +12.'},g=>{g.pat+=4;g.mor-=3;return'명분은 지켰지만 "돈 없는 구단" 이미지가 붙었다. 팬 만족도 +4, 사기 -3.'})]]},
 {id:'bonus',t:'선수단 승리수당 요구',x:'주장이 선수단 대표로 찾아와 승리수당 인상을 요구했다. 거절하면 분위기가 가라앉을 것 같다.',w:()=>1.4,c:[
- ['인상해 준다',LK(.65,g=>{pay(g,6);g.mor+=12;return`자금 -${M(g,6)}. 선수단 사기 +12.`},g=>{pay(g,9);g.mor+=4;return`소문이 퍼져 후보 선수들까지 요구했다. 자금 -${M(g,9)}, 사기 +4.`}),6],
+ ['인상해 준다',LK(.65,g=>{pay(g,6);g.mor+=12;return`자금 -${M(g,6)}. 선수단 사기 +12.`},g=>{pay(g,9);g.mor+=4;return`소문이 퍼져 후보 선수들까지 요구했다. 자금 -${M(g,9)}, 사기 +4.`}),6,9],
  ['감독에게 설득을 맡긴다',g=>{if(chk(g,'mot',55)){g.mor+=4;return'감독이 선수단을 다독였다. 사기 +4.'}g.mor-=12;return'설득 실패. 훈련장 분위기가 싸늘하다. 사기 -12.'}]]},
 {id:'itv',t:'구단주 단독 인터뷰',x:'지역 신문이 구단주 인터뷰를 요청했다. "구단의 5년 비전을 말씀해 주시죠."',w:()=>1.4,c:[
  ['"5년 안에 두 단계 승격한다"',g=>{const q=sitQ(g),T=C(g).tier;let p=.12+.58*q.sc+cl(q.e*.025,-.15,.18);if(T===1)p*=.35;else if(T===2)p*=.7;p=cl(p,.05,.92);
@@ -722,13 +723,13 @@ const EV=[
  ['거절한다',LK(.6,g=>{g.pat+=4;return'팬들이 환호했다. 팬 만족도 +4.'},g=>{g.mor-=2;return'라이벌이 그 스폰서를 받아 선수 보강에 썼다. 사기 -2.'})]]},
 {id:'fan',t:'팬 시위',x:'홈경기 후 서포터즈가 "구단주 OUT" 걸개를 들었다.',w:g=>g.pat<50?2:.4,c:[
  ['팬 미팅을 연다',g=>{if(R()<.5+(g.pat-40)/100+(g.luck-50)/200){g.pat+=12;return'진심이 통했다. 팬 만족도 +12.'}g.pat-=6;return'야유만 들었다. 팬 만족도 -6.'}],
- ['다음 홈경기 티켓을 무료로 푼다',LK(.65,g=>{g.pat+=8;g.fans=Math.round(g.fans*1.03);pay(g,2);return`팬 만족도 +8, 팬 +3%. 자금 -${M(g,2)}.`},g=>{g.pat+=1;pay(g,2);return`공짜표가 암표로 팔렸다. 팬 만족도 +1, 자금 -${M(g,2)}.`}),2]]},
+ ['다음 홈경기 티켓을 무료로 푼다 (1회 입장 수익 포기)',LK(.65,g=>{g.pat+=8;g.fans=Math.round(g.fans*1.03);g.freeHome=1;return`팬 만족도 +8, 팬 +3%. 다음 홈경기 1회 입장 수익 £0 (그 후 티켓값 ${fm(g.price)} 그대로).`},g=>{g.pat+=1;g.freeHome=1;return`공짜표가 암표로 팔렸다. 팬 만족도 +1. 다음 홈경기 1회 입장 수익 £0.`})]]},
 {id:'amb',t:'레전드의 앰배서더 제안',x:'구단 역대 최다 득점자가 구단 홍보대사를 맡고 싶다며 연락해 왔다.',w:()=>.8,c:[
  ['계약한다',LK(.65,g=>{pay(g,3);g.pat+=6;g.fans=Math.round(g.fans*1.06);return`자금 -${M(g,3)}. 팬 만족도 +6, 팬 +6%.`},g=>{pay(g,3);g.pat-=4;return`레전드가 방송에서 감독 전술을 비판했다. 자금 -${M(g,3)}, 팬 만족도 -4.`}),3],
  ['정중히 거절한다',LK(.5,g=>{g.pat-=1;return'레전드가 쿨하게 받아들였다. 팬 만족도 -1.'},g=>{g.pat-=6;return'레전드가 라이벌 구단 홍보대사가 됐다. 팬 만족도 -6.'})]]},
 {id:'sns',t:'구단주 SNS 논란',x:'판정에 화가 난 구단주가 새벽에 심판을 저격하는 글을 올렸다. 리그 사무국이 경위서를 요구한다.',w:()=>1.2,c:[
  ['공개 사과한다',LK(.65,g=>{g.pat-=1;return'깔끔한 사과로 조용히 수습했다. 팬 만족도 -1.'},g=>{g.pat-=5;return'사과문이 성의 없다며 2차 논란. 팬 만족도 -5.'})],
- ['끝까지 밀어붙인다',g=>{if(lucky(g,.45)){g.pat+=8;g.mor+=5;return'여론이 우리 편. 팬 만족도 +8, 사기 +5.'}pay(g,3);g.pat-=4;return`벌금 ${M(g,3)}. 팬 만족도 -4.`}]]},
+ ['끝까지 밀어붙인다',g=>{if(lucky(g,.45)){g.pat+=8;g.mor+=5;return'여론이 우리 편. 팬 만족도 +8, 사기 +5.'}pay(g,3);g.pat-=4;return`벌금 ${M(g,3)}. 팬 만족도 -4.`},0,3]]},
 {id:'data',once:1,t:'데이터 분석팀 제안',x:'IT 출신 분석가들이 xG 기반 분석팀을 꾸리자고 한다.',w:g=>can(g,8)?.8:0,c:[
  ['투자한다',LK(.6,g=>{pay(g,8);g.m.tac+=5;return`자금 -${M(g,8)}. 감독 전술 +5.`},g=>{pay(g,8);g.m.tac+=1;return`선수들이 태블릿을 거들떠보지 않는다. 자금 -${M(g,8)}, 감독 전술 +1.`}),8],
  ['감으로 간다',LK(.5,g=>{g.m.mot+=2;return'감독이 "내 눈을 믿는다"며 의욕을 보인다. 감독 동기부여 +2.'},g=>{g.m.tac-=2;return'상대 팀들이 우리 패턴을 다 읽고 나온다. 감독 전술 -2.'})]]},
@@ -742,14 +743,14 @@ const EV=[
  ['명명권을 판다',LK(.5,g=>{earn(g,15);g.pat-=3;return`건설사가 팬 행사까지 후원했다. 자금 +${M(g,15)}, 팬 만족도 -3.`},g=>{earn(g,15);g.pat-=10;return`"○○건설 스탠드"에 팬들이 보이콧을 선언했다. 자금 +${M(g,15)}, 팬 만족도 -10.`})],
  ['레전드 이름을 붙인다',LK(.6,g=>{g.pat+=8;g.mor+=3;return'헌정식에 관중이 몰렸다. 팬 만족도 +8, 사기 +3.'},g=>{pay(g,3);g.pat+=3;return`레전드 유족이 초상권 사용료를 청구했다. 자금 -${M(g,3)}, 팬 만족도 +3.`})]]},
 {id:'poach',t:'감독 빼가기',x:'상위 리그 구단이 우리 감독에게 접근했다. 위약금은 두둑하게 주겠다고 한다.',w:g=>g.m.rep>=30?1:.4,c:[
- ['연봉을 올려 붙잡는다',LK(.6,g=>{const v=mwage(g,g.m);g.cash-=v;g.mor+=3;return`감독 잔류. 자금 -${fm(v)}, 사기 +3.`},g=>{const v=mwage(g,g.m);g.cash-=v;g.m.mot-=5;return`돈으로 붙잡았지만 마음은 떠났다. 자금 -${fm(v)}, 감독 동기부여 -5.`})],
+ ['연봉을 올려 붙잡는다',LK(.6,g=>{const v=mwage(g,g.m);g.cash-=v;g.mor+=3;return`감독 잔류. 자금 -${fm(v)}, 사기 +3.`},g=>{const v=mwage(g,g.m);g.cash-=v;g.m.mot-=5;return`돈으로 붙잡았지만 마음은 떠났다. 자금 -${fm(v)}, 감독 동기부여 -5.`}),g=>mwage(g,g.m)/U(g)],
  ['위약금 받고 보낸다',LK(.5,g=>{earn(g,15);g.m=ownMgr(g,mkMgr(C(g).tier));recalc(g);g.mor-=2;return`자금 +${M(g,15)}. 감독 대행 ${g.m.name}이 의외로 수완을 보인다. 사기 -2.`},g=>{earn(g,15);g.m=ownMgr(g,mkMgr(C(g).tier));recalc(g);g.mor-=8;return`자금 +${M(g,15)}. 감독 대행 ${g.m.name} 체제에 선수단이 흔들린다. 사기 -8.`})]]},
 {id:'cup',t:'FA컵 홈경기',x:'FA컵에서 상위 리그 강호를 홈으로 불러들였다. 매진은 확실하다.',w:()=>1,c:[
  ['티켓값을 두 배로',LK(.5,g=>{earn(g,8);g.pat-=2;return`그래도 매진. 자금 +${M(g,8)}, 팬 만족도 -2.`},g=>{earn(g,6);g.pat-=8;return`"돈독 오른 구단주" 기사가 났고 빈자리도 생겼다. 자금 +${M(g,6)}, 팬 만족도 -8.`})],
  ['평소 가격 그대로',g=>{earn(g,4);g.pat+=4;if(lucky(g,.25)){g.mor+=8;g.fans=Math.round(g.fans*1.08);return`자이언트 킬링! 자금 +${M(g,4)}, 사기 +8, 팬 +8%, 팬 만족도 +4.`}return`아쉽게 졌지만 팬들은 만족했다. 자금 +${M(g,4)}, 팬 만족도 +4.`}]]},
 {id:'owner',t:'스폰서의 기용 간섭',x:'메인 스폰서 대표가 자기 조카를 선발로 쓰라고 한다.',w:()=>1,c:[
  ['따른다',LK(.5,g=>{earn(g,6);g.mor-=3;return`조카가 의외로 쓸 만하다. 보너스 +${M(g,6)}, 사기 -3.`},g=>{earn(g,6);g.mor-=10;return`조카가 자책골을 넣었다. 보너스 +${M(g,6)}, 사기 -10.`})],
- ['거부한다',LK(.6,g=>{g.mor+=5;g.pat+=3;return'사기 +5, 팬 만족도 +3.'},g=>{pay(g,4);g.mor+=3;return`스폰서가 보너스를 깎았다. 자금 -${M(g,4)}, 사기 +3.`})]]},
+ ['거부한다',LK(.6,g=>{g.mor+=5;g.pat+=3;return'사기 +5, 팬 만족도 +3.'},g=>{pay(g,4);g.mor+=3;return`스폰서가 보너스를 깎았다. 자금 -${M(g,4)}, 사기 +3.`}),0,4]]},
 {id:'sick',t:'부상 병동',x:'한 달 사이 주전 4명이 연달아 쓰러졌다. 의료진이 외부 전문의를 요청한다.',w:g=>1-.07*(g.fac.md-1),c:[
  ['전문의를 초빙한다',LK(.65,g=>{pay(g,5);return`회복이 빨라졌다. 전원 복귀. 자금 -${M(g,5)}.`},g=>{pay(g,5);const L=shuffle(lineup(C(g))).slice(0,1);L.forEach(p=>p.inj=true);C(g).str-=1;return`${L.map(p=>p.n).join(', ')}는 결국 시즌 아웃. 자금 -${M(g,5)}, 전력 -1.`}),5],
  ['자체 의료진으로 버틴다',g=>{if(lucky(g,.5)){C(g).str-=2;return'그럭저럭 버텼다. 전력 -2.'}const L=shuffle(lineup(C(g))).slice(0,3);L.forEach(p=>p.inj=true);return`추가 부상: ${L.map(p=>p.n).join(', ')} 시즌 아웃.`}]]},
@@ -775,13 +776,15 @@ const EV=[
  ['받는다',g=>{earn(g,25);if(lucky(g,.5))return`자금 +${M(g,25)}. 아직까지는 문제없다.`;g.pat-=15;return`자금 +${M(g,25)}. 한 달 뒤 거래소가 먹튀했다. 팬들이 분노했다. 팬 만족도 -15.`}],
  ['거절한다',LK(.6,g=>{g.pat+=3;return'한 달 뒤 그 거래소가 먹튀했다. 현명한 구단주! 팬 만족도 +3.'},g=>{g.mor-=2;return'그 거래소가 라이벌을 후원해 대박이 났다. 사기 -2.'})]]},
 {id:'tax',t:'세무 조사',x:'국세청이 구단 회계 장부를 보자고 한다. 지난 이적료 처리가 애매하다.',w:()=>.8,c:[
- ['회계법인을 고용한다',LK(.7,g=>{pay(g,5);return`자금 -${M(g,5)}. 깔끔하게 끝났다.`},g=>{pay(g,9);return`회계법인도 놓친 부분이 있었다. 추가 납부까지 자금 -${M(g,9)}.`}),5],
- ['그냥 버틴다',g=>{if(lucky(g,.5))return'별일 없이 지나갔다.';pay(g,15);return`추징금 ${M(g,15)}.`}]]},
+ ['회계법인을 고용한다',LK(.7,g=>{pay(g,5);return`자금 -${M(g,5)}. 깔끔하게 끝났다.`},g=>{pay(g,9);return`회계법인도 놓친 부분이 있었다. 추가 납부까지 자금 -${M(g,9)}.`}),5,9],
+ ['그냥 버틴다',g=>{if(lucky(g,.5))return'별일 없이 지나갔다.';pay(g,15);return`추징금 ${M(g,15)}.`},0,15]]},
 {id:'old',t:'경기장 노후 시설',x:'홈 스탠드 계단에 금이 갔다. 안전 점검관이 다음 주에 온다.',w:g=>g.fac.st>=2?1:0,c:[
- ['긴급 보수한다',LK(.7,g=>{pay(g,6);return`자금 -${M(g,6)}. 점검 통과.`},g=>{pay(g,9);return`공사 중 추가 균열이 발견됐다. 자금 -${M(g,9)}. 점검은 통과.`}),6],
+ ['긴급 보수한다',LK(.7,g=>{pay(g,6);return`자금 -${M(g,6)}. 점검 통과.`},g=>{pay(g,9);return`공사 중 추가 균열이 발견됐다. 자금 -${M(g,9)}. 점검은 통과.`}),6,9],
  ['일단 미룬다',g=>{if(lucky(g,.5))return'점검관이 대충 보고 갔다.';ded(g,3);g.pat-=6;return'스탠드 폐쇄 명령. 홈경기 몰수패로 승점 3점 삭감, 팬 만족도 -6.'}]]}];
 
-const ecost=(g,ci)=>{const e=EV[g.evs[g.S.ei]];return(e.c[ci]&&e.c[ci][2])||0};
+const evv=(g,v)=>typeof v==='function'?v(g):(v||0),ecost=(g,ci)=>{const e=EV[g.evs[g.S.ei]];return e.c[ci]?evv(g,e.c[ci][2]):0},emax=(g,ci)=>{const e=EV[g.evs[g.S.ei]];return e.c[ci]?Math.max(ecost(g,ci),evv(g,e.c[ci][3])):0};
+const evTxt=(g,v)=>typeof v==='function'?v(g):v;
+function evTarget(g){const k=g.season+'-'+(g.S?g.S.ei:0)+'-'+(g.S?g.S.r:0),c=C(g);if(!g.evT||g.evT.k!==k||!c.sq.some(p=>p.id===g.evT.id)){const b=best(c);g.evT={k,id:b?b.id:null}}return c.sq.find(p=>p.id===g.evT.id)||best(c)}
 const canEv=(g,ci)=>{const n=ecost(g,ci);return n<=0||can(g,n)};
 function drawEv(g,n){const pool=EV.map((e,i)=>({i,w:e.once&&g.once[e.id]||(NEEDP.has(e.id)&&!best(C(g)))?0:e.w(g)*(g.own==='strat'&&NEGEV.has(e.id)?1.8:1)})).filter(x=>x.w>0),out=[];
   while(out.length<n&&pool.length){let r=R()*pool.reduce((a,x)=>a+x.w,0),k=0;while(k<pool.length-1&&(r-=pool[k].w)>0)k++;out.push(pool[k].i);pool.splice(k,1)}return out}
@@ -798,7 +801,7 @@ function startSeason(g){if(!g.yq)fillYQ(g);const c=C(g),T=c.tier,ids=shuffle(lg(
   g.evs=drawEv(g,3);g.out=null;g.tab='draft';g.phase='pre'}
 function kickoff(g){if(g.draw)release(g,g.draw.id);fix(g);recalc(g);setPred(g);g.phase='season'}
 const NEEDP=new Set(['inj','out','crisis','sick','injx']);
-function runEv(g,ci){if(ci<0){const e=EV[g.evs[g.S.ei]];if(e.once)g.once[e.id]=1;return'아무것도 하지 못하고 지나갔다.'}{const e=EV[g.evs[g.S.ei]];if(NEEDP.has(e.id)&&!best(C(g))){if(e.once)g.once[e.id]=1;return'선수단이 텅 비어 있어 이번 일은 없던 일이 됐다.'}}if(!canEv(g,ci))return null;const e=EV[g.evs[g.S.ei]],c=C(g),s0=c.str;if(e.once)g.once[e.id]=1;const c0=g.cash,t=e.c[ci][1](g),d=Math.round(g.cash-c0);g.cash=c0;cash(g,d,d>=0?'evIn':'evOut');c.mod=(c.mod||0)+(c.str-s0);fix(g);recalc(g);return t}
+function runEv(g,ci){if(ci<0){const e=EV[g.evs[g.S.ei]];if(e.once)g.once[e.id]=1;return'아무것도 하지 못하고 지나갔다.'}{const e=EV[g.evs[g.S.ei]];if(NEEDP.has(e.id)&&!best(C(g))){if(e.once)g.once[e.id]=1;return'선수단이 텅 비어 있어 이번 일은 없던 일이 됐다.'}}if(!canEv(g,ci))return null;const e=EV[g.evs[g.S.ei]],c=C(g),s0=c.str;if(e.once)g.once[e.id]=1;const c0=g.cash;g.pendSign=[];g.evCtx=!g.ai;let t;try{t=e.c[ci][1](g)}finally{g.evCtx=false}const d=Math.round(g.cash-c0);g.cash=c0;cash(g,d,d>=0?'evIn':'evOut');c.mod=(c.mod||0)+(c.str-s0);fix(g);recalc(g);return t}
 function step(g){const S=g.S;
   if(S.ei<g.evs.length&&S.r===S.evR[S.ei]){g.phase='event';g.out=null;return}
   if(S.r>=S.fx.length){finish(g);return}
@@ -806,7 +809,7 @@ function step(g){const S=g.S;
   const mm=S.last.find(m=>m[0]===g.club||m[1]===g.club);if(mm&&!g.ai){const us=mm[0]===g.club;S.lastSc=credit(g,us?mm[2]:mm[3],us?mm[3]:mm[2])}
   if(mm){const d=mm[0]===g.club?mm[2]-mm[3]:mm[3]-mm[2];(S.my=S.my||[]).push(d>0?'W':d<0?'L':'D');g.pat+=d>0?.6:d<0?-.6:0}
   const w=Math.round(wageBill(g)/S.fx.length);S.fy.wag+=w;cash(g,-w,'wag');S.lastAtt=null;S.lastInc=0;
-  if(mm&&mm[0]===g.club){const att=attend(g),t=Math.round(att*g.price),m=Math.round(att*merch(g));S.fy.tix+=t;S.fy.mer+=m;cash(g,t,'tix');cash(g,m,'mer');S.atts.push(att);S.lastAtt=att;S.lastInc=t+m}
+  if(mm&&mm[0]===g.club){const att=attend(g),fr=g.freeHome;if(fr)g.freeHome=0;S.lastFree=!!fr;const t=fr?0:Math.round(att*g.price),m=Math.round(att*merch(g));S.fy.tix+=t;S.fy.mer+=m;cash(g,t,'tix');cash(g,m,'mer');S.atts.push(att);S.lastAtt=att;S.lastInc=t+m}else S.lastFree=false
   S.lastWage=w;fix(g);S.r++}
 function tie(g,a,b,mode){let x,y,t,legs=null;
   if(mode==='two'){const[p,q]=game(g,b,a),[u,v]=game(g,a,b);x=q+u;y=p+v;t=`합계 ${x}:${y}`;legs=[{h:b,a:a,x:p,y:q},{h:a,a:b,x:u,y:v}]}else{[x,y]=game(g,a,b,mode==='final');t=`${x}:${y}`}
@@ -925,6 +928,15 @@ function lbPaint(){const o=$('lbm');if(!o)return;const s=g&&g.hist.length?lbStat
   const mine=s?`<div class="lbmy"><span>내 기록${ended?'':' (진행 중)'}</span><b>EPL🏆 ${s.epl}</b><b>챔스🏆 ${s.ucl}</b><b>순위점수 ${s.rpt.toLocaleString()}</b>${LBme?`<em>${LBN[LBT]} 기준 ${LBme}위</em>`:''}</div>`:'';
   const form=!lbOn()||!g?'':ended&&g.lbSent?`<p class="note">‘${hx(g.lbSent)}’ 이름으로 등록됨</p>`:ended?`<div class="lbf"><span class="note">아직 등록되지 않았습니다.</span><button class="go" data-a="lbsend">다시 시도</button></div>`:`<p class="note">‘${hx(g.owner)}’ 이름으로, 게임이 끝나면 자동 등록됩니다.</p>`;
   o.innerHTML=`<div class="rbb lbb"><h3 id="lbmt">🌍 온라인 랭킹</h3><div class="lbtabs">${Object.keys(LBN).map(k=>`<button data-a="lbt" data-i="${k}" aria-pressed="${k===LBT}">${LBN[k]}</button>`).join('')}</div>${mine}${form}${LBmsg?`<p class="note lbmsg">${hx(LBmsg)}</p>`:''}${rows}<p class="note lbhelp">순위 점수: 매 시즌 전체 ${LB_OFF.all}개 구단 중 우리 순위가 높을수록 많이 쌓입니다.</p><div class="acts"><button data-a="lbx">닫기</button></div></div>`}
+function costTxt(g,i){const b=ecost(g,i),mx=emax(g,i),ok=canEv(g,i);if(!b&&!mx)return'';if(mx>b+.01)return`<span>${b?`기본 ${M(g,b)}`:'기본 지출 없음'} · 최대 총지출 ${M(g,mx)}${ok?'':' · 자금 부족'}</span>`;return`<span>${M(g,b)} 필요${ok?'':' · 자금 부족'}</span>`}
+function signPick(g){const p=g.pendSign[0],c=C(g),L=new Set(lineup(c).map(x=>x.id)),sel=g.sgSel,ord=x=>POS.indexOf(x.pos)*1000-x.ovr;
+  return`<div class="sgp"><h3>선수단이 가득 찼습니다 (${c.sq.length}/${SQMAX})</h3><p><b>${p.n}</b> (${PN[p.pos]}, OVR ${p.ovr}, ${p.age}세)를 영입하려면 방출할 선수를 고르세요.</p><div class="sgl">${c.sq.slice().sort((a,b)=>ord(a)-ord(b)).map(x=>`<button class="sgr${sel===x.id?' on':''}" data-a="sgpick" data-i="${x.id}" aria-pressed="${sel===x.id}"><span class="rpp p-${x.pos}">${x.pos}</span><b>${hx(x.n)}</b><small>OVR ${x.ovr} · ${x.age}세${L.has(x.id)?' · 선발':''}${x.star?' · ★':''}</small></button>`).join('')}</div>
+  <div class="acts"><button class="go" data-a="sgok" ${sel&&c.sq.some(x=>x.id===sel)?'':'disabled'}>선택한 선수 방출하고 영입</button><button class="ghost" data-a="sgno">영입 취소</button></div><p class="note">영입을 취소해도 이미 쓴 이벤트 비용은 돌아오지 않습니다.</p></div>`}
+function signResolve(g,ok){const p=g.pendSign&&g.pendSign[0];if(!p)return;const c=C(g);
+  if(ok){const w=c.sq.find(x=>x.id===g.sgSel);if(!w)return;const i=c.sq.indexOf(w);c.sq.splice(i,1);if(g.tk)delete g.tk[w.n];c.sq.push(p);recalc(g);setPred(g);
+    g.out+=`<br><b>영입</b> ${p.n} (${PN[p.pos]}, OVR ${p.ovr}) · <b>방출</b> ${w.n} (${PN[w.pos]}, OVR ${w.ovr})`}
+  else g.out+=`<br><b>영입 취소</b> — ${p.n} (${PN[p.pos]}, OVR ${p.ovr})는 합류하지 않았다.`;
+  g.pendSign.shift();g.sgSel=null;saveGame()}
 function holes(g){const c=C(g),N=needOf(c),o=[];for(const q of POS){const n=c.sq.filter(x=>x.pos===q&&!x.inj).length;if(n<N[q])o.push([q,N[q]-n])}return o}
 function holeModal(){$('hlm')?.remove();const H=holes(g),c=C(g),o=document.createElement('div');o.className='rbm';o.id='hlm';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-labelledby','hlmt');
   const fm=(c.fm||'4-4-2');o.innerHTML=`<div class="rbb"><h3 id="hlmt">🔒 시즌을 시작할 수 없습니다</h3><p>현재 포메이션(<b>${fm}</b>)을 채울 선수가 모자랍니다.</p><ul>${H.map(([q,n])=>`<li><b>${PN[q]}</b> ${n}명 부족</li>`).join('')}</ul><p class="note">선수 뽑기로 채우거나, 급한 대로 동네에서 임시 선수를 데려올 수 있습니다. 임시 선수는 실력이 낮지만 이적료 없이 연봉만 받습니다.</p>
@@ -1196,10 +1208,10 @@ function card(){const el=$('cd');let o='';
   else if(g.phase==='season'){const S=g.S,m=S.r?myLast():null,nx=nextOpp(),done=S.r>=S.fx.length,rk=ranks()[g.club],row=S.tb[g.club];
     o=`<div class="kick">${yr(g.season)} 시즌 · ${S.r}/${S.fx.length} 라운드${g.ff?' · <span class="live">▶▶ 빨리감기</span>':''}</div><h2>${done?'정규 시즌 종료':S.r?`현재 ${rk}위 ${arw(S.pr?S.pr[g.club]-rk:0)}`:'개막전 대기'}</h2>
     <p class="note" style="margin:0 0 4px">승점 ${row.p} · ${row.w}승 ${row.d}무 ${row.l}패 · 자금 <b class="${g.cash<0?'dn':''}">${fm(g.cash)}</b></p><div class="acts top">${g.ff?'<button class="go" data-a="stop">멈춤</button>':done?'<button class="go" data-a="step">시즌 결산</button>':'<button class="go" data-a="step">다음 경기</button><button class="ghost" data-a="run">자동 진행 ▶▶</button>'}</div>${nx?`<div class="nxo"><span>다음 상대 · ${nx[0]===g.club?'홈':'원정'}${S.ei<g.evs.length&&S.r===S.evR[S.ei]?' · <b class="evn">이벤트 발생 예정</b>':''}</span>${tmc(tm(nx[0]===g.club?nx[1]:nx[0]),1)}</div>`:''}${strip()}${m?'<p class="note" style="margin:10px 0 0">지난 경기</p>':''}${m?scoreboard(m):''}${m&&S.lastSc&&S.lastSc.length?`<p class="note scn">⚽ ${scTxt(S.lastSc)}</p>`:''}
-    ${S.r?`<p class="note" style="margin:8px 0 0">${S.lastAtt!=null?`홈 관중 <b>${S.lastAtt.toLocaleString()}</b>명 · 티켓+상품 <b class="up">+${fm(S.lastInc)}</b> · `:'원정 경기 · '}임금 <b class="dn">-${fm(S.lastWage||0)}</b></p>`:''}
+    ${S.r?`<p class="note" style="margin:8px 0 0">${S.lastAtt!=null?`홈 관중 <b>${S.lastAtt.toLocaleString()}</b>명${S.lastFree?' · <b>무료 개방</b>(입장 수익 £0)':''} · 티켓+상품 <b class="up">+${fm(S.lastInc)}</b> · `:'원정 경기 · '}임금 <b class="dn">-${fm(S.lastWage||0)}</b></p>`:''}
     ${S.last.length?`<details><summary>이번 라운드 전체 결과</summary><div class="rl">${S.last.map(([h,a,x,y])=>`<span>${tm(h).ab} ${x}-${y} ${tm(a).ab}</span>`).join('')}</div></details>`:''}`}
-  else if(g.phase==='event'){const e=EV[g.evs[g.S.ei]];o=`<div class="kick">${yr(g.season)} 시즌 · ${g.S.r}라운드 · 이벤트 ${g.S.ei+1}/${g.evs.length} · 자금 ${fm(g.cash)}</div><h2>${e.t}</h2><p>${e.x}</p>`+
-    (g.out?`<p class="out">${g.out}</p>${g.ffRes?'<div class="cdn"><i></i></div><p class="note">잠시 후 자동 진행을 이어갑니다</p>':''}<div class="acts"><button class="go" data-a="next">${g.ffRes?'바로 이어서 자동 진행 ▶▶':'경기로 돌아가기'}</button>${g.ffRes?'<button class="ghost" data-a="manual">여기서 수동으로</button>':''}</div>`:`<div class="opts">${e.c.map((c,i)=>`<button class="opt" data-a="ch" data-i="${i}" ${canEv(g,i)?'':'disabled'}><b>${c[0]}</b>${ecost(g,i)?`<span>${M(g,ecost(g,i))} 필요${canEv(g,i)?'':' · 자금 부족'}</span>`:''}</button>`).join('')}${e.c.some((_,i)=>canEv(g,i))?'':'<button class="opt" data-a="ch" data-i="-1"><b>그냥 넘긴다</b><span>할 수 있는 게 없다</span></button>'}</div>`)}
+  else if(g.phase==='event'){const e=EV[g.evs[g.S.ei]];o=`<div class="kick">${yr(g.season)} 시즌 · ${g.S.r}라운드 · 이벤트 ${g.S.ei+1}/${g.evs.length} · 자금 ${fm(g.cash)}</div><h2>${e.t}</h2><p>${evTxt(g,e.x)}</p>`+
+    (g.out&&g.pendSign&&g.pendSign.length?`<p class="out">${g.out}</p>${signPick(g)}`:g.out?`<p class="out">${g.out}</p>${g.ffRes?'<div class="cdn"><i></i></div><p class="note">잠시 후 자동 진행을 이어갑니다</p>':''}<div class="acts"><button class="go" data-a="next">${g.ffRes?'바로 이어서 자동 진행 ▶▶':'경기로 돌아가기'}</button>${g.ffRes?'<button class="ghost" data-a="manual">여기서 수동으로</button>':''}</div>`:`<div class="opts">${e.c.map((c,i)=>`<button class="opt" data-a="ch" data-i="${i}" ${canEv(g,i)?'':'disabled'}><b>${evTxt(g,c[0])}</b>${costTxt(g,i)}</button>`).join('')}${e.c.some((_,i)=>canEv(g,i))?'':'<button class="opt" data-a="ch" data-i="-1"><b>그냥 넘긴다</b><span>할 수 있는 게 없다</span></button>'}</div>`)}
   else if(g.phase==='post'){const q=g.pq,i=g.pqi,cur=q[i],lt=q[i-1],done=i>=q.length,op=x=>x.h===g.club?x.a:x.h;
     o=`<div class="kick">${yr(g.season-1)} 시즌 · ${q[0].c} · ${Math.min(i+1,q.length)}/${q.length}경기${g.pf?' · <span class="live">▶▶ 자동 진행</span>':''}</div><h2>${done?`${q[0].c} · ${lt.nt}`:`${cur.r}`}</h2>
     ${done?'':`<div class="nxo"><span>다음 경기 · ${cur.c} ${cur.r}${cur.neu?' · 중립 경기장':cur.h===g.club?' · 홈':' · 원정'}</span>${tmc(tm(op(cur)),1)}</div>`}
@@ -1436,7 +1448,7 @@ function fxFire(L){if(!L)return;let k=null,t='',sub='';
     else{const P=k==='champ'?['#f1d58a','#e8c35a','#fff3c4','#c8463a','#3f9a46','#4a7bd0','#ffffff']:['#3f9a46','#9be37a','#f1d58a','#ffffff'];for(let i=0;i<(k==='champ'?110:70);i++)b+=`<i style="left:${(Math.random()*100).toFixed(1)}%;background:${P[i%P.length]};width:${4+Math.round(Math.random()*6)}px;height:${6+Math.round(Math.random()*8)}px;--r:${Math.round(Math.random()*900-450)}deg;--x:${Math.round(Math.random()*80-40)}px;animation-delay:${(Math.random()*1.6).toFixed(2)}s;animation-duration:${(2+Math.random()*1.8).toFixed(2)}s"></i>`}}
   o.innerHTML=`<div class="fxp">${b}</div><div class="fxb"><span class="fxt">${k==='champ'?'🏆':k==='up'?'▲':'▼'}</span><b>${t}</b>${sub?`<small>${sub}</small>`:''}<em>눌러서 닫기</em></div>`;
   document.body.appendChild(o);const rm=()=>{o.classList.add('bye');setTimeout(()=>o.remove(),350)};o.addEventListener('click',rm);setTimeout(rm,k==='down'?4200:5200);}
-function resume(){clearTimeout(autoT);autoT=null;if(!g||g.phase!=='event'||!g.out)return;const go=g.ffRes;g.S.ei++;g.out=null;g.phase='season';
+function resume(){clearTimeout(autoT);autoT=null;if(!g||g.phase!=='event'||!g.out||(g.pendSign&&g.pendSign.length))return;const go=g.ffRes;g.S.ei++;g.out=null;g.phase='season';
   if(go){g.ffRes=false;render();startRun()}else render()}
 document.addEventListener('click',ev=>{const b=ev.target.closest('[data-a]');if(b&&g)setTimeout(saveGame,0);});
 document.addEventListener('click',ev=>{const b=ev.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,i=b.dataset.i;
@@ -1464,7 +1476,9 @@ document.addEventListener('click',ev=>{const b=ev.target.closest('[data-a]');if(
   else if(a==='prun'){if(busy||g.phase!=='post')return;g.pf=true;postPlay(true);return}
   else if(a==='pstop'){g.pf=false;render();return}
   else if(a==='pdone'){if(busy){clearInterval(busy);clearTimeout(busy);busy=null;window.__skip=null}g.pf=false;g.pqi=g.pq?g.pq.length:0;g.pq=null;g.phase='result'}
-  else if(a==='ch'){const t=runEv(g,+i);if(t==null)return;g.out=t;if(g.ffRes&&!RM){render();autoT=setTimeout(resume,2600);return}}
+  else if(a==='ch'){const t=runEv(g,+i);if(t==null)return;g.out=t;if(g.ffRes&&!RM&&!(g.pendSign&&g.pendSign.length)){render();autoT=setTimeout(resume,2600);return}}
+  else if(a==='sgpick'){g.sgSel=i;card();return}
+  else if(a==='sgok'||a==='sgno'){signResolve(g,a==='sgok');if(g.ffRes&&!RM&&!(g.pendSign&&g.pendSign.length)){render();autoT=setTimeout(resume,2200);return}}
   else if(a==='next'){resume();return}
   else if(a==='dpos'){g.dpos=i;drPanel();return}
   else if(a==='draw'){const p=drawP(g,+i,g.dpos);if(p){if(p.mir||p.star)setTimeout(()=>gachaFx(p),80)}}
