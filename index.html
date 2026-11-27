@@ -535,7 +535,7 @@ const best=c=>lineup(c).sort((a,b)=>b.ovr-a.ovr)[0];
 const posAvg=(c,pos)=>{const L=lineup(c).filter(p=>p.pos===pos);return L.length<needOf(c)[pos]?0:Math.round(L.reduce((a,p)=>a+p.ovr,0)/L.length)};
 const worstStart=(c,pos)=>{const L=lineup(c).filter(p=>p.pos===pos);return L.length<needOf(c)[pos]?0:Math.min(...L.map(p=>p.ovr))};
 // ---------- gacha (the only way to sign players)
-const PACK=[{n:'동네 스카우트',c:2,m:-5,s:5,leg:.005,mir:.002,st:.001},{n:'프로 스카우트',c:5,m:0,s:4,leg:.03,mir:.008,st:.004},{n:'VIP 에이전트',c:13,m:4,s:4,leg:.08,mir:.02,st:.01}];
+const PACK=[{n:'동네 스카우트',c:2,m:-5,s:5,leg:.005,mir:.015,st:.0075},{n:'프로 스카우트',c:5,m:0,s:4,leg:.03,mir:.06,st:.03},{n:'VIP 에이전트',c:13,m:4,s:4,leg:.08,mir:.15,st:.075}];
 const DRAWM=1.3,LOANR=.15,LOANC=250;
 const esc=g=>(C(g).tier>=5?1.4:1.65)-.03*(g.fac.sc-1),PMUL=[0,9,7,3.5,2.2,1.5,1.1,1],cost=(g,k)=>Math.round(DRAWM*PACK[k].c*U(g)*PMUL[C(g).tier]*Math.pow(esc(g),g.dn||0)*(g.own==='inv'?.7:g.own==='prof'?.8:1));
 const scM=g=>1+.1*(g.fac.sc-1),dmax=g=>Infinity;
