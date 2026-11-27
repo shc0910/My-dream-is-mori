@@ -285,6 +285,9 @@ button,input,select{font-family:inherit}button.go{background:#19503e;color:white
 .lbmsg{font-weight:700}.lbhelp{font-size:.8em;opacity:.75}
 .lbopen{display:block;width:100%;margin:0 0 14px}
 .go.lock{opacity:.55;filter:grayscale(.6)}
+.dbt{display:inline-block;margin-left:6px;color:#ff8a7a;font-weight:700;font-size:.85em}.loanb{display:block;width:100%;margin-top:10px}
+.loanbox{border:3px solid #22201c;border-radius:10px;padding:10px;margin:0 0 12px;background:#fffaf0}.loanbox h4{margin:0 0 6px}.lbar{position:relative;height:12px;border:2px solid #22201c;border-radius:6px;background:#eee;overflow:visible}.lbar i{display:block;height:100%;background:#3f9a46;border-radius:4px}.lbar i.hot{background:#d9534f}.lbar em{position:absolute;top:-4px;bottom:-4px;width:2px;background:#22201c}
+.lrow{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:.88em;margin:6px 0}.lwarn{border-color:#c0392b}.lopts{display:flex;flex-direction:column;gap:6px;margin:8px 0}
 .sgp{border:3px solid #22201c;border-radius:10px;padding:10px;margin:10px 0;background:#fffaf0}.sgp h3{margin:0 0 4px;font-size:18px}.sgp p{margin:0}.sgl{display:grid;grid-template-columns:1fr;gap:5px;max-height:300px;overflow:auto;margin:8px 0}.sgr{display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center;text-align:left;padding:3px 8px;min-height:0;font-size:14px;border:2px solid #22201c;border-radius:8px;background:#fff}.sgr small{grid-column:2;opacity:.75;font-size:12px}.sgr .rpp{padding:4px 4px;font-size:11px}.sgr.on{background:#ffe08a}.holew{margin:6px 0}
 .rpl{display:flex;flex-direction:column;gap:6px;margin:8px 0;max-height:46dvh;overflow:auto}.rpr{display:grid;grid-template-columns:auto 1fr;column-gap:8px;align-items:center;padding:6px 8px;border:2px solid #22201c;border-radius:8px;background:#fffdf5}.rpr small{grid-column:2;opacity:.75}.rpp{grid-row:1/3;font:700 12px/1 G11B,monospace;padding:6px 5px;border:2px solid #22201c;border-radius:5px;background:#e9e3d0}.rpp.p-GK{background:#ffe08a}.rpp.p-DF{background:#9fd3ff}.rpp.p-MF{background:#a9e7a3}.rpp.p-FW{background:#ffb0a8}
 .nmrow{display:flex;gap:10px}.nmrow>div{flex:1;min-width:0}.nmrow input{width:100%;box-sizing:border-box}.nmrow label small{font-weight:400;opacity:.65;font-size:.8em}.nmerr{color:#c0392b;font-weight:700;margin:4px 0 0}
@@ -338,10 +341,13 @@ const lgAvg=(g,t)=>{const L=g?lg(g,t):TEAMS.filter(x=>x.tier===t);return Math.ro
 const UNIT=[0,2.5e6,4e5,1.5e5,6e4,2.5e4,3e3,400];
 const U=g=>UNIT[C(g).tier];
 const can=(g,n)=>g.cash>=n*U(g);
-const LCAT={tix:'티켓',mer:'상품',tv:'중계권',spon:'스폰서',prize:'순위 상금',bonus:'승격·우승·강등 보상',eu:'유럽대회 상금',wag:'선수·감독 임금',upk:'시설 유지비',evIn:'이벤트 수입',evOut:'이벤트 지출',capex:'시설 투자',mgr:'감독 계약금',draw:'뽑기 비용',sale:'선수 매각·환급'};
-const OPIN=['tix','mer','tv','spon','prize','bonus','eu'],OPOUT=['wag','upk'],FLOW=['evIn','evOut','capex','mgr','draw','sale'];
+const LCAT={tix:'티켓',mer:'상품',tv:'중계권',spon:'스폰서',prize:'순위 상금',bonus:'승격·우승·강등 보상',eu:'유럽대회 상금',wag:'선수·감독 임금',upk:'시설 유지비',evIn:'이벤트 수입',evOut:'이벤트 지출',capex:'시설 투자',mgr:'감독 계약금',draw:'뽑기 비용',sale:'선수 매각·환급',loan:'대출·상환'};
+const OPIN=['tix','mer','tv','spon','prize','bonus','eu'],OPOUT=['wag','upk'],FLOW=['evIn','evOut','capex','mgr','draw','sale','loan'];
 function cash(g,amt,k){amt=Math.round(amt);if(!amt)return;g.cash+=amt;const L=g.led||(g.led={});L[k]=(L[k]||0)+amt}
 const ledSum=(L,ks)=>ks.reduce((a,k)=>a+(L[k]||0),0);
+const loanFree=g=>LOANF*U(g),loanCap=g=>LOANC*U(g);
+function borrow(g,amt){amt=Math.round(amt);if(amt<=0)return;g.loan=(g.loan||0)+amt;cash(g,amt,'loan')}
+function repay(g,amt){amt=Math.round(Math.min(amt,g.loan||0,Math.max(0,g.cash)));if(amt<=0)return 0;g.loan-=amt;cash(g,-amt,'loan');return amt}
 const pay=(g,n)=>{g.cash-=Math.round(n*U(g))};
 const earn=(g,n)=>{g.cash+=Math.round(n*U(g))};
 const fm=v=>{const a=Math.abs(v),s=v<0?'-':'';return s+'£'+(a>=1e6?(a/1e6).toFixed(a>=1e7?0:1)+'M':a>=1e3?(a/1e3).toFixed(a>=1e4?0:1)+'K':Math.round(a))};
@@ -530,7 +536,8 @@ const posAvg=(c,pos)=>{const L=lineup(c).filter(p=>p.pos===pos);return L.length<
 const worstStart=(c,pos)=>{const L=lineup(c).filter(p=>p.pos===pos);return L.length<needOf(c)[pos]?0:Math.min(...L.map(p=>p.ovr))};
 // ---------- gacha (the only way to sign players)
 const PACK=[{n:'동네 스카우트',c:2,m:-5,s:5,leg:.005,mir:.002,st:.001},{n:'프로 스카우트',c:5,m:0,s:4,leg:.03,mir:.008,st:.004},{n:'VIP 에이전트',c:13,m:4,s:4,leg:.08,mir:.02,st:.01}];
-const esc=g=>(C(g).tier>=5?1.4:1.65)-.03*(g.fac.sc-1),PMUL=[0,9,7,3.5,2.2,1.5,1.1,1],cost=(g,k)=>Math.round(PACK[k].c*U(g)*PMUL[C(g).tier]*Math.pow(esc(g),g.dn||0)*(g.own==='inv'?.7:g.own==='prof'?.8:1));
+const DRAWM=1.3,LOANF=40,LOANR=.15,LOANC=250;
+const esc=g=>(C(g).tier>=5?1.4:1.65)-.03*(g.fac.sc-1),PMUL=[0,9,7,3.5,2.2,1.5,1.1,1],cost=(g,k)=>Math.round(DRAWM*PACK[k].c*U(g)*PMUL[C(g).tier]*Math.pow(esc(g),g.dn||0)*(g.own==='inv'?.7:g.own==='prof'?.8:1));
 const scM=g=>1+.1*(g.fac.sc-1),dmax=g=>Infinity;
 const RAR=['브론즈','실버','골드','전설','초신성','월드 스타'],rar=(g,o)=>{const d=o-TM[C(g).tier];return d>=9?3:d>=3?2:d>=-4?1:0};
 const banned=g=>g.banS===g.season;
@@ -857,7 +864,8 @@ function finish(g){const S=g.S,c=C(g),T=S.T,table=sortT(S),rank=table.findIndex(
   if(nT!==T)g.price=g.price*REFP[nT]/REFP[T];g.price=clampPrice(g,g.price);
   g.mor+=(g.pred-rank)*1.5+(up?8:0)-(down?10:0);
   g.debt=g.cash<-30*UNIT[nT]?(g.debt||0)+1:0;
-  g.last={rank,T,nT,up,down,champ,euro,myPo,poWin:myPo&&myPo.w===g.club,pred:g.pred,fy,avgAtt,fans0:f0,broke:g.debt>=2,warn:g.debt===1};
+  let lint=0;if(g.loan>LOANF*UNIT[T]){lint=Math.round((g.loan-LOANF*UNIT[T])*LOANR);g.loan+=lint}const lbk=(g.loan||0)>LOANC*UNIT[T];
+  g.last={rank,T,nT,up,down,champ,euro,myPo,poWin:myPo&&myPo.w===g.club,pred:g.pred,fy,avgAtt,fans0:f0,broke:g.debt>=2||lbk,loanBroke:lbk,lint,warn:g.debt===1};
   const ld=g.ai?null:seasonLeaders(g);if(ld){const RC=g.rec=g.rec||{};for(const k of['g','a','rt','cs'])if(ld[k]&&(!RC[k]||ld[k].v>RC[k].v))RC[k]={...ld[k],s:g.season}}
   g.hist.push({leagueWins:S.tb[g.club].w,leagueGames:S.tb[g.club].w+S.tb[g.club].d+S.tb[g.club].l,s:g.season,id:c.id,T,rank,n,up,down,champ,ld,po:myPo&&myPo.w===g.club,euro:euro?euro.best:0,comp:euro?euro.comp:null,att:avgAtt,net:fy.net,flow:fy.flow,cash:g.cash,nT});
   for(const t of g.teams){const tg=.5*t.b+.5*TM[t.tier];if(t.id===g.club)continue;t.str+=(tg-t.str)*.25+gauss()*2.5;t.str=cl(Math.round(t.str),12,99)}
@@ -868,7 +876,7 @@ const RB=.65,RBT=2,TOPK=33,LOWB={6:3.5,7:2,5:2.6,4:2.2,3:2,2:1.8},RBM={1:RB,2:RB
 const MAXS=30,MAXX=40,TOPS=10,EUB=1,REG=.2,SCB=.3,TRB=.15,TRT=.6,DCAP=4,ROFF=-3;
 const endS=g=>g.firstTop?Math.min(MAXX,Math.max(MAXS,g.firstTop+TOPS-1)):MAXS;
 function proceed(g){if(g.last.broke){g.phase='end';g.endR='파산'}else if(g.season>endS(g)){g.phase='end';g.endR=`${g.hist.length}시즌 완주`}else startSeason(g)}
-const clubValue=g=>g.facSpent+C(g).sq.reduce((a,p)=>a+sellVal(g,p),0)+Math.max(0,g.cash);
+const clubValue=g=>g.facSpent+C(g).sq.reduce((a,p)=>a+sellVal(g,p),0)+Math.max(0,g.cash)-(g.loan||0);
 function score(g){let s=g.euroWins*30+(g.uelWins||0)*12+(g.ueclWins||0)*6+g.t1s+g.promos;for(const t of g.titles)s+=[0,15,6,3,1,1,1,1][t.t];for(const h of g.hist)s+=(h.comp==='ucl'||!h.comp)?(h.euro>=3?5:h.euro===2?2:0):(h.euro>=3?1:0);return s}
 function grade(g){const b=g.endR==='파산'?' (파산)':'';if(g.euroWins>=2)return'유럽의 왕조'+b;if(g.euroWins)return'UCL 제패 구단주'+b;if(g.titles.some(t=>t.t===1))return'프리미어리그 챔피언 구단주'+b;if(g.uelWins)return'유로파리그 우승 구단주'+b;if(g.ueclWins)return'컨퍼런스리그 우승 구단주'+b;if(g.peak===1)return'EPL 구단주'+b;if(g.peak===2)return'챔피언십 구단주'+b;if(g.peak===3)return'리그 원 구단주'+b;if(g.peak===4)return'4부리그 구단주'+b;if(g.peak===5)return'내셔널리그 구단주'+b;if(g.peak===6)return'카운티 리그 구단주'+b;return'동네 조기축구 회장님'+b}
 // ---------- AI owner (baseline & tests)
@@ -937,6 +945,15 @@ function signResolve(g,ok){const p=g.pendSign&&g.pendSign[0];if(!p)return;const 
     g.out+=`<br><b>영입</b> ${p.n} (${PN[p.pos]}, OVR ${p.ovr}) · <b>방출</b> ${w.n} (${PN[w.pos]}, OVR ${w.ovr})`}
   else g.out+=`<br><b>영입 취소</b> — ${p.n} (${PN[p.pos]}, OVR ${p.ovr})는 합류하지 않았다.`;
   g.pendSign.shift();g.sgSel=null;saveGame()}
+function loanBox(){const d=g.loan||0,F=loanFree(g),K=loanCap(g),pc=Math.min(100,d/K*100),fp=F/K*100;
+  return`<div class="loanbox"><h4>💳 대출</h4><div class="lbar"><i style="width:${pc}%" class="${d>F?'hot':''}"></i><em style="left:${fp}%"></em></div>
+  <div class="lrow"><span>부채 <b class="${d>F?'dn':''}">${fm(d)}</b></span><span>무이자 한도 ${fm(F)}</span><span>파산 한도 <b class="dn">${fm(K)}</b></span></div>
+  <p class="note">무이자 한도를 넘으면 시즌이 끝날 때마다 넘은 금액의 ${Math.round(LOANR*100)}%가 이자로 쌓입니다. 파산 한도를 넘은 채 시즌이 끝나면 <b>파산 엔딩</b>입니다. 한도는 소속 리그에 따라 달라집니다.</p>
+  ${g.phase==='end'?'':`<div class="acts"><button class="go" data-a="loan">대출 받기</button>${d>0?`<button class="ghost" data-a="rpay" data-i="10">${M(g,10)} 상환</button><button class="ghost" data-a="rpay" data-i="all">전액 상환</button>`:''}</div>`}</div>`}
+function loanModal(){$('lnm')?.remove();const o=document.createElement('div');o.className='rbm';o.id='lnm';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-labelledby','lnmt');const d=g.loan||0,F=loanFree(g),K=loanCap(g);
+  o.innerHTML=`<div class="rbb"><h3 id="lnmt">💳 대출 받기</h3><p class="out lwarn"><b>⚠ 파산할 수 있어요.</b><br>부채가 ${fm(F)}를 넘으면 매 시즌 이자 ${Math.round(LOANR*100)}%가 쌓이고, ${fm(K)}를 넘은 채 시즌이 끝나면 구단이 압류됩니다 (파산 엔딩).</p><p>현재 부채 <b>${fm(d)}</b> · 자금 <b>${fm(g.cash)}</b></p>
+  <div class="lopts">${[10,30,100].map(n=>{const nd=d+n*U(g);return`<button class="opt" data-a="borrow" data-i="${n}"><b>${M(g,n)} 빌리기</b><span>대출 후 부채 ${fm(nd)}${nd>K?' · <b class="dn">파산 한도 초과!</b>':nd>F?' · 이자 발생':' · 무이자'}</span></button>`}).join('')}</div>
+  <div class="acts"><button class="ghost" data-a="loan-x">닫기</button></div></div>`;document.body.appendChild(o);o.querySelector('[data-a=loan-x]').focus()}
 function holes(g){const c=C(g),N=needOf(c),o=[];for(const q of POS){const n=c.sq.filter(x=>x.pos===q&&!x.inj).length;if(n<N[q])o.push([q,N[q]-n])}return o}
 function holeModal(){$('hlm')?.remove();const H=holes(g),c=C(g),o=document.createElement('div');o.className='rbm';o.id='hlm';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-labelledby','hlmt');
   const fm=(c.fm||'4-4-2');o.innerHTML=`<div class="rbb"><h3 id="hlmt">🔒 시즌을 시작할 수 없습니다</h3><p>현재 포메이션(<b>${fm}</b>)을 채울 선수가 모자랍니다.</p><ul>${H.map(([q,n])=>`<li><b>${PN[q]}</b> ${n}명 부족</li>`).join('')}</ul><p class="note">선수 뽑기로 채우거나, 급한 대로 동네에서 임시 선수를 데려올 수 있습니다. 임시 선수는 실력이 낮지만 이적료 없이 연봉만 받습니다.</p>
@@ -953,6 +970,10 @@ function retModal(){const o=document.createElement('div');o.className='rbm';o.id
 function retireNow(){if(!g||g.phase==='end'||!g.hist.length)return;try{clearTimeout(autoT)}catch(e){}try{if(busy){clearInterval(busy);clearTimeout(busy);busy=null}}catch(e){}window.__skip=null;document.querySelectorAll('.fxo').forEach(x=>x.remove());
   g.ff=false;g.ffRes=false;g.phase='end';g.endR=`${g.hist.length}시즌 후 은퇴`;g.retired=1;TAB='game';render();window.scrollTo(0,0)}
 document.addEventListener('click',ev=>{const b=ev.target.closest('[data-a]');if(!b)return;const a=b.dataset.a;
+  if(a==='loan'){ev.stopImmediatePropagation();if(g&&g.phase!=='end')loanModal();return}
+  if(a==='loan-x'){ev.stopImmediatePropagation();$('lnm')?.remove();return}
+  if(a==='borrow'){ev.stopImmediatePropagation();if(!g||g.phase==='end')return;borrow(g,+b.dataset.i*U(g));saveGame();render();loanModal();return}
+  if(a==='rpay'){ev.stopImmediatePropagation();if(!g)return;const n=b.dataset.i==='all'?Infinity:+b.dataset.i*U(g);repay(g,n);saveGame();render();return}
   if(a==='hole-x'){ev.stopImmediatePropagation();$('hlm')?.remove();return}
   if(a==='hole-draw'){ev.stopImmediatePropagation();$('hlm')?.remove();g.dpos=b.dataset.i;render();showTab('squad');setTimeout(()=>{const d=$('dr');if(d)d.scrollIntoView({block:'start'})},50);return}
   if(a==='hole-temp'){ev.stopImmediatePropagation();$('hlm')?.remove();holeTemp();render();return}
@@ -978,7 +999,7 @@ const tmc=(t,b)=>`<span class="tm">${bd(t)}<span>${b?`<b>${t.n}</b>`:t.n}</span>
 const yr=s=>`${2025+s}-${String(26+s).slice(-2)}`;
 function status(){if(!g){$('st').innerHTML='<span>동네 조기축구팀을 창단해 유럽 정상까지!</span>';return}
   const c=C(g),S=g.S,live=S&&(g.phase==='season'||g.phase==='event'),rk=live&&S.r?`${ranks()[g.club]}위`:g.phase==='pre'?`예상 ${g.pred}위`:g.last?`${g.last.rank}위`:'-';
-  $('st').innerHTML=`${bd(c)}<span class="sti"><b>${yr(g.phase==='result'||g.phase==='post'||g.phase==='end'?g.season-1:g.season).replace(/^(\d\d)/,'<span class="yc">$1</span>')}</b> · ${TN[S&&live?S.T:c.tier]} · <b>${rk}</b></span><span class="stc">자금 <b class="${g.cash<0?'dn':''}">${fm(g.cash)}</b></span>${g.phase==='event'&&TAB!=='game'?'<button class="mini alert" data-a="ptab" data-i="game">이벤트 선택 대기 중</button>':''}${g.ff&&TAB!=='game'?'<span class="live">▶▶ 자동 진행 중</span>':''}`}
+  $('st').innerHTML=`${bd(c)}<span class="sti"><b>${yr(g.phase==='result'||g.phase==='post'||g.phase==='end'?g.season-1:g.season).replace(/^(\d\d)/,'<span class="yc">$1</span>')}</b> · ${TN[S&&live?S.T:c.tier]} · <b>${rk}</b></span><span class="stc">자금 <b class="${g.cash<0?'dn':''}">${fm(g.cash)}</b>${g.loan>0?`<small class="dbt">부채 ${fm(g.loan)}</small>`:''}</span>${g.phase==='event'&&TAB!=='game'?'<button class="mini alert" data-a="ptab" data-i="game">이벤트 선택 대기 중</button>':''}${g.ff&&TAB!=='game'?'<span class="live">▶▶ 자동 진행 중</span>':''}`}
 function chart(){const s=$('cv'),W=s.clientWidth,H=s.clientHeight;if(!W)return;
   const nar=W<520,L=nar?44:84,Rp=14,T=8,B=22,N=MAXS,y=v=>Math.round(T+(v+.8)/7.8*(H-T-B)),x=i=>Math.round(L+(i-1)/(N-1)*(W-L-Rp)),lab=nar?['유럽','1부','2부','3부','4부','5부','6부','7부']:['유럽','EPL','챔피언십','리그 원','리그 투','내셔널','카운티','조기축구'];let o='';
   for(let k=0;k<8;k++){const y0=k?y(k-1):y(-.8),y1=k?y(k):y(0);o+=`<rect x="${L}" y="${y0}" width="${W-L-Rp}" height="${y1-y0}" class="${k?(k%2?'s1':'s2'):'eu'}"/><text x="${L-8}" y="${(y0+y1)/2+5}" text-anchor="end" class="lb">${lab[k]}</text>`}
@@ -1013,7 +1034,7 @@ function table(){const el=$('tx');
   <div class="leg">${S.T===1?'<span><i style="background:var(--gold)"></i>챔피언스리그</span>':`<span><i style="background:var(--gr)"></i>자동 승격</span>${RL.po?`<span><i style="background:var(--po)"></i>플레이오프 ${RL.po[0]}~${RL.po[1]}위</span>`:''}`}${RL.rel?'<span><i style="background:var(--red)"></i>강등</span>':''}</div>${lgBox()}`}
 function cabinet(){const cnt={};g.titles.forEach(t=>cnt[t.t]=(cnt[t.t]||0)+1);
   const it=[...[['ucl',g.euroWins],['uel',g.uelWins||0],['uecl',g.ueclWins||0]].filter(x=>x[1]).map(([k,n])=>[CK(k).n,n,1]),...[1,2,3,4,5,6,7].filter(t=>cnt[t]).map(t=>[TN[t],cnt[t],0])];
-  return`<div class="cab">${it.map(([n,k,e])=>`<div class="tro${e?' eu':''}"><span class="tri">🏆</span><b>${n}</b><span class="trn">${'🏆'.repeat(Math.min(k,5))}${k>5?'…':''} ${k}회</span></div>`).join('')}<div class="tro sm"><span class="tri">▲</span><b>승격</b><span class="trn">${g.promos}회</span></div>${it.length?'':'<p class="note" style="margin:0;align-self:center">아직 우승 트로피가 없습니다. 첫 🏆를 노려 보세요.</p>'}</div>`}
+  return`<div class="cab">${it.map(([n,k,e])=>`<div class="tro${e?' eu':''}"><span class="tri">🏆</span><b>${n}</b><span class="trn">${'🏆'.repeat(Math.min(k,5))}${k>5?'…':''} ${k}회</span></div>`).join('')}${(()=>{const h=g.hist.at(-1),fin=g.phase==='end';if(!h&&!fin)return'';const T=h?h.T:C(g).tier;return`<div class="tro sm lgt"><span class="tri">🏟</span><b>${fin?'최종 리그':'직전 시즌 리그'}</b><span class="trn">${TN[T]}${h?` · ${h.rank}위`:''}</span></div>`})()}${g.peak?`<div class="tro sm"><span class="tri">⛰</span><b>최고 도달</b><span class="trn">${TN[g.peak]}</span></div>`:''}<div class="tro sm"><span class="tri">▲</span><b>승격</b><span class="trn">${g.promos}회</span></div>${it.length?'':'<p class="note" style="margin:0;align-self:center">아직 우승 트로피가 없습니다. 첫 🏆를 노려 보세요.</p>'}</div>`}
 function clubRec(){const A=Object.values(g.pst||{});if(!A.length)return'';const RC=g.rec||{};
   const b=(lab,f,ok,fmt)=>{const x=A.filter(ok||(()=>true)).sort((p,q)=>f(q)-f(p))[0];return x&&f(x)>0?`<div class="rcb"><small>${lab}</small><b>${x.n}</b><span>${fmt?fmt(x):f(x)}</span></div>`:''};
   const sr=(lab,k,u)=>RC[k]?`<div class="rcb"><small>${lab}</small><b>${RC[k].n}</b><span>${k==='rt'?'★'+RC[k].v.toFixed(2):RC[k].v+u} · ${yr(RC[k].s)}</span></div>`:'';
@@ -1221,7 +1242,7 @@ function card(){const el=$('cd');let o='';
   else if(g.phase==='result'){const L=g.last,f=L.fy,nw=g.news&&g.news.at(-1),hd=L.champ?`${TN[L.T]} 우승!`:L.up?`${L.rank}위 · ${L.poWin?'플레이오프 거쳐 ':''}${TN[L.nT]} 승격`:L.down?`${L.rank}위 · 강등`:`최종 ${L.rank}위`;
     o=`<div class="kick">${yr(g.season-1)} 시즌 결과 · 예상 ${L.pred}위</div><h2>${hd}</h2>
     <div class="acts top"><button class="go" data-a="go">${L.broke?'결산 보기':g.season>endS(g)?'최종 결산':'다음 시즌 준비 ▶'}</button><button class="ghost" data-a="ptab" data-i="fin">재무 결산 자세히</button><button class="ghost" data-a="ptab" data-i="rec">뉴스 · 순위</button></div>
-    <p class="out">${L.broke?'<b>파산.</b> 2시즌 연속 자금이 바닥났다. 리그 사무국이 구단을 압류한다.':L.warn?`<b>재정 경고.</b> 자금 ${fm(g.cash)}. 다음 시즌 끝에도 ${M(g,-30)} 아래면 파산.`:`팬 만족도 ${g.pat}. ${g.pat>=70?'팬들이 구단주 이름을 연호한다.':g.pat>=40?'팬들은 일단 지켜보는 중.':'"구단주 OUT" 걸개가 늘고 있다.'}`}</p>
+    <p class="out">${L.lint?`<b>대출 이자</b> ${fm(L.lint)}가 부채에 더해졌다. 현재 부채 ${fm(g.loan)}.<br>`:''}${L.loanBroke?`<b>파산.</b> 부채 ${fm(g.loan)}가 한도를 넘었다. 채권단이 구단을 압류한다.`:L.broke?'<b>파산.</b> 2시즌 연속 자금이 바닥났다. 리그 사무국이 구단을 압류한다.':L.warn?`<b>재정 경고.</b> 자금 ${fm(g.cash)}. 다음 시즌 끝에도 ${M(g,-30)} 아래면 파산.`:`팬 만족도 ${g.pat}. ${g.pat>=70?'팬들이 구단주 이름을 연호한다.':g.pat>=40?'팬들은 일단 지켜보는 중.':'"구단주 OUT" 걸개가 늘고 있다.'}`}</p>
     <div class="ex"><div><b class="${f.net<0?'dn':'up'}">${fm(f.net)}</b><span>운영손익</span></div><div><b class="${f.flow<0?'dn':'up'}">${fm(f.flow)}</b><span>현금 증감</span></div><div><b class="${g.cash<0?'dn':''}">${fm(f.cash1)}</b><span>기말 자금</span></div></div>
     <p class="note">평균 관중 ${L.avgAtt.toLocaleString()}명 · 팬 ${L.fans0.toLocaleString()} → ${g.fans.toLocaleString()}</p>
     ${(()=>{const d=g.hist.at(-1)?.ld;return d?`<div class="ldb">${d.g?`<div><small>팀 득점왕</small><b>${d.g.n}</b><span>${d.g.v}골</span></div>`:''}${d.a?`<div><small>도움왕</small><b>${d.a.n}</b><span>${d.a.v}도움</span></div>`:''}${d.rt?`<div><small>최고 평점</small><b>${d.rt.n}</b><span>★${d.rt.v.toFixed(2)}</span></div>`:''}${d.cs?`<div><small>클린시트</small><b>${d.cs.n}</b><span>${d.cs.v}회</span></div>`:''}</div>`:''})()}
@@ -1276,12 +1297,12 @@ function mini(){const el=$('mini');if(!g){const L=TEAMS.map((t,i)=>({...t,id:i})
   rows.forEach((r,i)=>{if(!keep.has(i)){if(!gap)o+='<tr class="gap"><td colspan="5">…</td></tr>';gap=true;return}gap=false;o+=`<tr class="${zone(S.T,i,n)}${r.id===g.club?' me':''}"><td class="n">${i+1}</td><td>${tmc(tm(r.id))}</td><td class="n">${r.w+r.d+r.l}</td><td class="n">${r.gf-r.ga>0?'+':''}${r.gf-r.ga}</td><td class="n"><b>${r.p}</b></td></tr>`});
   el.innerHTML=o+`</tbody></table></div><div class="acts"><button class="ghost" data-a="ptab" data-i="rec">전체 순위 · 뉴스</button></div>`}
 function drPanel(){const el=$('dr');if(!g){el.innerHTML='';return}const pre=g.phase==='pre';
-  el.innerHTML=`<h3>선수 뽑기</h3>${pre&&banned(g)?'<p class="out"><b>경영 참여 정지</b> — 이번 프리시즌에는 뽑기와 방출을 할 수 없습니다.</p>':pre?draftTab():`<p class="note">뽑기와 방출은 프리시즌에만 할 수 있습니다. 시즌이 끝나면 다시 열립니다.</p>`}`}
+  el.innerHTML=`<h3>선수 뽑기</h3>${pre&&banned(g)?'<p class="out"><b>경영 참여 정지</b> — 이번 프리시즌에는 뽑기와 방출을 할 수 없습니다.</p>':pre?draftTab():`<p class="note">뽑기와 방출은 프리시즌에만 할 수 있습니다. 시즌이 끝나면 다시 열립니다.</p>`}${pre&&!banned(g)&&g.phase!=='end'?`<button class="ghost loanb" data-a="loan">💳 대출 받기${g.loan>0?` · 부채 ${fm(g.loan)}`:''}</button>`:''}`}
 const PRE=()=>g&&g.phase==='pre'&&!banned(g);
 function opsPanel(){const el=$('mgp');if(!el)return;if(!g){el.innerHTML='';return}
   el.innerHTML=`<h3>감독 고용</h3>${PRE()?'':'<p class="note" style="margin:0 0 8px"><b>'+(banned(g)?'경영 참여 정지 중입니다.':'시즌 중에는 감독을 바꿀 수 없습니다.')+'</b> 다음 프리시즌에 변경하세요.</p>'}<div class="${PRE()?'':'mk lock'}" style="${PRE()?'':'margin:0'}">${mgrTab()}</div>`}
 function finPanel(){const el=$('fin');if(!g){el.innerHTML='';return}const L=g.led||{},v=k=>L[k]||0,op=OPIN.concat(OPOUT).reduce((a,k)=>a+v(k),0),fl=FLOW.reduce((a,k)=>a+v(k),0),r=k=>v(k)?`<tr><td>${LCAT[k]}</td><td class="n ${v(k)<0?'dn':''}">${fm(v(k))}</td></tr>`:'',live=g.phase!=='result'&&g.phase!=='post'&&g.phase!=='end';
-  el.innerHTML=`<h3>재정</h3><div class="ex"><div><b class="${g.cash<0?'dn':''}">${fm(g.cash)}</b><span>현재 자금</span></div><div><b>${fm(wageBill(g))}</b><span>시즌 임금(예상)</span></div><div><b>${fm(g.facSpent*.03)}</b><span>시즌 시설 유지비(예상)</span></div></div>
+  el.innerHTML=`<h3>재정</h3>${loanBox()}<div class="ex"><div><b class="${g.cash<0?'dn':''}">${fm(g.cash)}</b><span>현재 자금</span></div><div><b>${fm(wageBill(g))}</b><span>시즌 임금(예상)</span></div><div><b>${fm(g.facSpent*.03)}</b><span>시즌 시설 유지비(예상)</span></div></div>
   ${live?`<h4>${yr(g.season)} 시즌 진행 중 장부</h4><div class="scroll"><table class="fin"><tbody><tr><th colspan="2">운영</th></tr>${OPIN.concat(OPOUT).map(r).join('')||'<tr><td colspan="2" class="note">아직 없음</td></tr>'}<tr class="sub"><td><b>운영손익 (지금까지)</b></td><td class="n"><b>${fm(op)}</b></td></tr><tr><th colspan="2">투자·거래·이벤트</th></tr>${FLOW.map(r).join('')||'<tr><td colspan="2" class="note">아직 없음</td></tr>'}<tr class="sub"><td><b>소계</b></td><td class="n"><b>${fm(fl)}</b></td></tr><tr><td>기초 자금</td><td class="n">${fm(g.cash0??g.cash)}</td></tr><tr class="tot"><td><b>현재 자금</b></td><td class="n"><b>${fm(g.cash)}</b></td></tr></tbody></table></div><p class="note">중계권·스폰서·상금·유지비는 시즌이 끝날 때 한 번에 정산됩니다.</p>`:''}
   ${g.last&&g.last.fy&&g.last.fy.led?`<h4>${yr((g.hist.at(-1)||{}).s||g.season-1)} 시즌 재무 결산</h4>${finRows(g.last.fy)}`:''}
   ${g.hist.length?`<h4>시즌별 재정</h4><div class="scroll"><table><thead><tr><th>시즌</th><th>리그</th><th class="n">평균 관중</th><th class="n">운영손익</th><th class="n">현금 증감</th><th class="n">기말 자금</th></tr></thead><tbody>${g.hist.slice().reverse().map(h=>`<tr><td>${yr(h.s)}</td><td>${TN[h.T]}</td><td class="n">${h.att.toLocaleString()}</td><td class="n ${h.net<0?'dn':'up'}">${fm(h.net)}</td><td class="n ${(h.flow??h.net)<0?'dn':'up'}">${fm(h.flow??h.net)}</td><td class="n">${fm(h.cash)}</td></tr>`).join('')}</tbody></table></div>`:''}`}
