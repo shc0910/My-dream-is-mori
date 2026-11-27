@@ -345,7 +345,7 @@ const LCAT={tix:'티켓',mer:'상품',tv:'중계권',spon:'스폰서',prize:'순
 const OPIN=['tix','mer','tv','spon','prize','bonus','eu'],OPOUT=['wag','upk'],FLOW=['evIn','evOut','capex','mgr','draw','sale','loan'];
 function cash(g,amt,k){amt=Math.round(amt);if(!amt)return;g.cash+=amt;const L=g.led||(g.led={});L[k]=(L[k]||0)+amt}
 const ledSum=(L,ks)=>ks.reduce((a,k)=>a+(L[k]||0),0);
-const loanFree=g=>LOANF*U(g),loanCap=g=>LOANC*U(g);
+const loanCap=g=>LOANC*U(g);
 function borrow(g,amt){amt=Math.round(amt);if(amt<=0)return;g.loan=(g.loan||0)+amt;cash(g,amt,'loan')}
 function repay(g,amt){amt=Math.round(Math.min(amt,g.loan||0,Math.max(0,g.cash)));if(amt<=0)return 0;g.loan-=amt;cash(g,-amt,'loan');return amt}
 const pay=(g,n)=>{g.cash-=Math.round(n*U(g))};
@@ -536,7 +536,7 @@ const posAvg=(c,pos)=>{const L=lineup(c).filter(p=>p.pos===pos);return L.length<
 const worstStart=(c,pos)=>{const L=lineup(c).filter(p=>p.pos===pos);return L.length<needOf(c)[pos]?0:Math.min(...L.map(p=>p.ovr))};
 // ---------- gacha (the only way to sign players)
 const PACK=[{n:'동네 스카우트',c:2,m:-5,s:5,leg:.005,mir:.002,st:.001},{n:'프로 스카우트',c:5,m:0,s:4,leg:.03,mir:.008,st:.004},{n:'VIP 에이전트',c:13,m:4,s:4,leg:.08,mir:.02,st:.01}];
-const DRAWM=1.3,LOANF=40,LOANR=.15,LOANC=250;
+const DRAWM=1.3,LOANR=.15,LOANC=250;
 const esc=g=>(C(g).tier>=5?1.4:1.65)-.03*(g.fac.sc-1),PMUL=[0,9,7,3.5,2.2,1.5,1.1,1],cost=(g,k)=>Math.round(DRAWM*PACK[k].c*U(g)*PMUL[C(g).tier]*Math.pow(esc(g),g.dn||0)*(g.own==='inv'?.7:g.own==='prof'?.8:1));
 const scM=g=>1+.1*(g.fac.sc-1),dmax=g=>Infinity;
 const RAR=['브론즈','실버','골드','전설','초신성','월드 스타'],rar=(g,o)=>{const d=o-TM[C(g).tier];return d>=9?3:d>=3?2:d>=-4?1:0};
@@ -864,7 +864,7 @@ function finish(g){const S=g.S,c=C(g),T=S.T,table=sortT(S),rank=table.findIndex(
   if(nT!==T)g.price=g.price*REFP[nT]/REFP[T];g.price=clampPrice(g,g.price);
   g.mor+=(g.pred-rank)*1.5+(up?8:0)-(down?10:0);
   g.debt=g.cash<-30*UNIT[nT]?(g.debt||0)+1:0;
-  let lint=0;if(g.loan>LOANF*UNIT[T]){lint=Math.round((g.loan-LOANF*UNIT[T])*LOANR);g.loan+=lint}const lbk=(g.loan||0)>LOANC*UNIT[T];
+  let lint=0;if(g.loan>0){lint=Math.round(g.loan*LOANR);g.loan+=lint}const lbk=(g.loan||0)>LOANC*UNIT[T];
   g.last={rank,T,nT,up,down,champ,euro,myPo,poWin:myPo&&myPo.w===g.club,pred:g.pred,fy,avgAtt,fans0:f0,broke:g.debt>=2||lbk,loanBroke:lbk,lint,warn:g.debt===1};
   const ld=g.ai?null:seasonLeaders(g);if(ld){const RC=g.rec=g.rec||{};for(const k of['g','a','rt','cs'])if(ld[k]&&(!RC[k]||ld[k].v>RC[k].v))RC[k]={...ld[k],s:g.season}}
   g.hist.push({leagueWins:S.tb[g.club].w,leagueGames:S.tb[g.club].w+S.tb[g.club].d+S.tb[g.club].l,s:g.season,id:c.id,T,rank,n,up,down,champ,ld,po:myPo&&myPo.w===g.club,euro:euro?euro.best:0,comp:euro?euro.comp:null,att:avgAtt,net:fy.net,flow:fy.flow,cash:g.cash,nT});
@@ -945,14 +945,14 @@ function signResolve(g,ok){const p=g.pendSign&&g.pendSign[0];if(!p)return;const 
     g.out+=`<br><b>영입</b> ${p.n} (${PN[p.pos]}, OVR ${p.ovr}) · <b>방출</b> ${w.n} (${PN[w.pos]}, OVR ${w.ovr})`}
   else g.out+=`<br><b>영입 취소</b> — ${p.n} (${PN[p.pos]}, OVR ${p.ovr})는 합류하지 않았다.`;
   g.pendSign.shift();g.sgSel=null;saveGame()}
-function loanBox(){const d=g.loan||0,F=loanFree(g),K=loanCap(g),pc=Math.min(100,d/K*100),fp=F/K*100;
-  return`<div class="loanbox"><h4>💳 대출</h4><div class="lbar"><i style="width:${pc}%" class="${d>F?'hot':''}"></i><em style="left:${fp}%"></em></div>
-  <div class="lrow"><span>부채 <b class="${d>F?'dn':''}">${fm(d)}</b></span><span>무이자 한도 ${fm(F)}</span><span>파산 한도 <b class="dn">${fm(K)}</b></span></div>
-  <p class="note">무이자 한도를 넘으면 시즌이 끝날 때마다 넘은 금액의 ${Math.round(LOANR*100)}%가 이자로 쌓입니다. 파산 한도를 넘은 채 시즌이 끝나면 <b>파산 엔딩</b>입니다. 한도는 소속 리그에 따라 달라집니다.</p>
+function loanBox(){const d=g.loan||0,K=loanCap(g),pc=Math.min(100,d/K*100);
+  return`<div class="loanbox"><h4>💳 대출</h4><div class="lbar"><i style="width:${pc}%" class="${pc>=60?'hot':''}"></i></div>
+  <div class="lrow"><span>부채 <b class="${d>0?'dn':''}">${fm(d)}</b></span><span>다음 시즌 이자 ${fm(Math.round(d*LOANR))}</span><span>파산 한도 <b class="dn">${fm(K)}</b></span></div>
+  <p class="note">시즌이 끝날 때마다 부채 전체의 ${Math.round(LOANR*100)}%가 이자로 쌓입니다. 파산 한도를 넘은 채 시즌이 끝나면 <b>파산 엔딩</b>입니다. 한도는 소속 리그에 따라 달라집니다.</p>
   ${g.phase==='end'?'':`<div class="acts"><button class="go" data-a="loan">대출 받기</button>${d>0?`<button class="ghost" data-a="rpay" data-i="10">${M(g,10)} 상환</button><button class="ghost" data-a="rpay" data-i="all">전액 상환</button>`:''}</div>`}</div>`}
-function loanModal(){$('lnm')?.remove();const o=document.createElement('div');o.className='rbm';o.id='lnm';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-labelledby','lnmt');const d=g.loan||0,F=loanFree(g),K=loanCap(g);
-  o.innerHTML=`<div class="rbb"><h3 id="lnmt">💳 대출 받기</h3><p class="out lwarn"><b>⚠ 파산할 수 있어요.</b><br>부채가 ${fm(F)}를 넘으면 매 시즌 이자 ${Math.round(LOANR*100)}%가 쌓이고, ${fm(K)}를 넘은 채 시즌이 끝나면 구단이 압류됩니다 (파산 엔딩).</p><p>현재 부채 <b>${fm(d)}</b> · 자금 <b>${fm(g.cash)}</b></p>
-  <div class="lopts">${[10,30,100].map(n=>{const nd=d+n*U(g);return`<button class="opt" data-a="borrow" data-i="${n}"><b>${M(g,n)} 빌리기</b><span>대출 후 부채 ${fm(nd)}${nd>K?' · <b class="dn">파산 한도 초과!</b>':nd>F?' · 이자 발생':' · 무이자'}</span></button>`}).join('')}</div>
+function loanModal(){$('lnm')?.remove();const o=document.createElement('div');o.className='rbm';o.id='lnm';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-labelledby','lnmt');const d=g.loan||0,K=loanCap(g);
+  o.innerHTML=`<div class="rbb"><h3 id="lnmt">💳 대출 받기</h3><p class="out lwarn"><b>⚠ 파산할 수 있어요.</b><br>빌린 돈 전체에 매 시즌 이자 ${Math.round(LOANR*100)}%가 쌓이고, 부채가 ${fm(K)}를 넘은 채 시즌이 끝나면 구단이 압류됩니다 (파산 엔딩).</p><p>현재 부채 <b>${fm(d)}</b> · 자금 <b>${fm(g.cash)}</b></p>
+  <div class="lopts">${[10,30,100].map(n=>{const nd=d+n*U(g);return`<button class="opt" data-a="borrow" data-i="${n}"><b>${M(g,n)} 빌리기</b><span>대출 후 부채 ${fm(nd)} · 시즌 이자 ${fm(Math.round(nd*LOANR))}${nd>K?' · <b class="dn">파산 한도 초과!</b>':''}</span></button>`}).join('')}</div>
   <div class="acts"><button class="ghost" data-a="loan-x">닫기</button></div></div>`;document.body.appendChild(o);o.querySelector('[data-a=loan-x]').focus()}
 function holes(g){const c=C(g),N=needOf(c),o=[];for(const q of POS){const n=c.sq.filter(x=>x.pos===q&&!x.inj).length;if(n<N[q])o.push([q,N[q]-n])}return o}
 function holeModal(){$('hlm')?.remove();const H=holes(g),c=C(g),o=document.createElement('div');o.className='rbm';o.id='hlm';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');o.setAttribute('aria-labelledby','hlmt');
